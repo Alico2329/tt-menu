@@ -216,7 +216,7 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--brand); out
   // ================================================================ ma'lumot (bot URL orqali yuboradi: ?a=...)
   const DEMO = {
     n: 'Tezkor Taom Namangan', at: '14:32',
-    s: { bm: 3, bp: 35000, dl: "shahar bo'ylab bepul", h: '08:00 – 00:00' },
+    s: { bm: 3, bp: 35000, dl: "shahar bo'ylab bepul", h: '08:00 – 00:00', ne: 5 },
     t: ['Bugungi menyu', [['d0_1', 'Set taom: Tovuq say', 40000, 0, 'img/tovuq-say.jpg']]],
     c: [
       ['kg', "⚖️ Kilo bo'yicha", [['osh_kg', 'Osh (1 kg)', 40000, 0, 'img/osh.jpg'], ['kfc_kg', 'KFC (1 kg)', 90000, 0, 'img/kfc.jpg'], ['norin_kg', 'Norin (1 kg)', 90000, 1, 'img/norin.jpg']]],
@@ -257,7 +257,7 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--brand); out
       { id: '__today', title: '🍛 Kun taomi', daily: true, items: D.t[1].map(mkItem) },
       ...D.c.map(([id, title, items]) => ({ id, title, items: items.map(mkItem) })),
     ],
-    s: { bm: String(D.s.bm), bp: String(D.s.bp), dl: D.s.dl, h: D.s.h },
+    s: { bm: String(D.s.bm), bp: String(D.s.bp), dl: D.s.dl, h: D.s.h, ne: String(D.s.ne || 1) },
   };
   const snapshot = () => JSON.stringify([state.cats.map(c => [c.id, c.title, c.items.map(i => [i.id, i.name.trim(), i.price, i.off])]), state.s]);
   let saved = snapshot();
@@ -442,14 +442,23 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--brand); out
         <h2>Yetkazib berish va ish vaqti</h2>
         <div class="field"><label for="s-dl">Yetkazib berish matni</label><input id="s-dl" maxlength="60" value="${esc(state.s.dl)}"><span class="help">Mijoz menyuda va savatda shu matnni ko'radi</span></div>
         <div class="field"><label for="s-h">Ish vaqti</label><input id="s-h" maxlength="40" value="${esc(state.s.h)}"></div>
+      </div>
+      <div class="box">
+        <h2>Bildirishnoma</h2>
+        <div class="field"><label for="s-ne">Ovozli eslatma — har nechta yangi buyurtmada</label><input id="s-ne" inputmode="numeric" maxlength="2" value="${esc(state.s.ne)}">
+          <span class="help" id="s-ne-help"></span></div>
       </div>`;
     prev();
   }
-  function prev() { $('#s-prev').innerHTML = `Mijoz ko'radi: 🔥 <b>${esc(state.s.bm || '?')} ta</b> va undan ko'p olsangiz — har biri <b>${money(+state.s.bp || 0)}</b>`; }
+  function neHelp() {
+    const n = +state.s.ne || 1, el = $('#s-ne-help');
+    if (el) el.textContent = n > 1 ? `Buyurtmalar ovozsiz keladi, har ${n} ta yangi buyurtma yig'ilganda telefon jiringlaydi.` : 'Har bir buyurtma ovozli keladi.';
+  }
+  function prev() { neHelp(); $('#s-prev').innerHTML = `Mijoz ko'radi: 🔥 <b>${esc(state.s.bm || '?')} ta</b> va undan ko'p olsangiz — har biri <b>${money(+state.s.bp || 0)}</b>`; }
   $('#p-set').addEventListener('input', (e) => {
-    const t = e.target, k = { 's-bm': 'bm', 's-bp': 'bp', 's-dl': 'dl', 's-h': 'h' }[t.id];
+    const t = e.target, k = { 's-bm': 'bm', 's-bp': 'bp', 's-dl': 'dl', 's-h': 'h', 's-ne': 'ne' }[t.id];
     if (!k) return;
-    if (k === 'bm' || k === 'bp') t.value = t.value.replace(/\D/g, '');
+    if (k === 'bm' || k === 'bp' || k === 'ne') t.value = t.value.replace(/\D/g, '');
     state.s[k] = t.value; prev(); changed();
   });
 
@@ -522,7 +531,7 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--brand); out
       type: 'admin', v: 1,
       t: [state.todayTitle, pack(today.items)],
       c: state.cats.filter(c => !c.daily).map(c => [c.id, c.title.trim(), pack(c.items)]),
-      s: { bm: +state.s.bm, bp: +state.s.bp || 0, dl: state.s.dl.trim(), h: state.s.h.trim() },
+      s: { bm: +state.s.bm, bp: +state.s.bp || 0, dl: state.s.dl.trim(), h: state.s.h.trim(), ne: Math.max(1, +state.s.ne || 1) },
     };
     if (photoFor) payload.photo = photoFor;
     const json = JSON.stringify(payload);
