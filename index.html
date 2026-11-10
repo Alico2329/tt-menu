@@ -7,264 +7,329 @@
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700;800&family=Unbounded:wght@600;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Exo+2:ital,wght@1,700;1,800;1,900&family=Onest:wght@400;500;600;700&display=swap">
 <style>
-/* Telegram o'z ranglarini --tg-theme-* orqali beradi; bu qiymatlar faqat brauzerda ochilganda ishlaydi */
+/* TT livreyasi — petrol + yangi yashil, qiya Exo 2 raqamlar, tezlik chiziqlari.
+   Sahifa foni va matn Telegram mavzusidan (--tg-theme-*) olinadi; brend qobig'i o'zgarmaydi. */
 :root {
   --tg-theme-bg-color: #FFFFFF;
-  --tg-theme-secondary-bg-color: #F3F1EC;
-  --tg-theme-text-color: #1A1714;
-  --tg-theme-hint-color: #8A837B;
-  --tg-theme-button-color: #E2531F;
-  --tg-theme-button-text-color: #FFFFFF;
-  --brand: #E2531F;
-  --brand-2: #FF8A3D;
-  --brand-soft: color-mix(in srgb, var(--brand) 12%, var(--tg-theme-bg-color));
+  --tg-theme-secondary-bg-color: #EEF2EE;
+  --tg-theme-text-color: #0B2229;
+  --tg-theme-hint-color: #6C7E80;
+  --tg-theme-button-color: #8DB548;
+  --tg-theme-button-text-color: #0C3C48;
+
+  --petrol: #0C3C48;
+  --petrol-deep: #00242E;
+  --petrol-soft: #164E5B;
+  --leaf: #8DB548;
+  --leaf-deep: #5E8A2C;
+  --leaf-pale: #E4F0D2;
+  --cream: #F6F8F2;
+  --amber: #E9B949;
+
+  --ground: var(--tg-theme-secondary-bg-color);
   --card: var(--tg-theme-bg-color);
-  --page: var(--tg-theme-secondary-bg-color);
   --ink: var(--tg-theme-text-color);
   --hint: var(--tg-theme-hint-color);
-  --line: color-mix(in srgb, var(--tg-theme-hint-color) 20%, transparent);
-  --danger: #D93636;
-  --ok: #1F9D57;
-  --r-lg: 22px;
-  --r-md: 16px;
-  --shadow: 0 1px 2px rgba(26, 18, 10, .05), 0 8px 24px -12px rgba(26, 18, 10, .18);
-  --f-display: 'Unbounded', 'Arial Black', system-ui, sans-serif;
-  --f-ui: 'Onest', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  --line: color-mix(in srgb, var(--tg-theme-hint-color) 22%, transparent);
+  --price: var(--petrol);           /* narx raqamlari rangi (tungi rejimda yashilga o'tadi) */
+  --chip: color-mix(in srgb, var(--petrol) 8%, var(--card));
+  --danger: #C7372F;
+
+  --shadow-1: 0 1px 2px rgba(0, 36, 46, .06), 0 6px 18px -10px rgba(0, 36, 46, .28);
+  --shadow-2: 0 2px 4px rgba(0, 36, 46, .08), 0 22px 44px -22px rgba(0, 36, 46, .5);
+  --r-xl: 26px; --r-lg: 20px; --r-md: 14px;
+  --display: 'Exo 2', 'Onest', system-ui, sans-serif;
+  --ui: 'Onest', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  --ease: cubic-bezier(.16, 1, .3, 1);
   color-scheme: light;
 }
 @media (prefers-color-scheme: dark) {
   :root {
-    --tg-theme-bg-color: #1A1A1C;
-    --tg-theme-secondary-bg-color: #0F0F10;
-    --tg-theme-text-color: #F2EFEA;
-    --tg-theme-hint-color: #918B85;
-    --tg-theme-button-color: #FF6A2B;
-    --tg-theme-button-text-color: #FFFFFF;
-    --brand: #FF6A2B;
-    --brand-2: #FFA05C;
-    --shadow: 0 8px 24px -14px rgba(0, 0, 0, .7);
-    --danger: #FF6464;
-    --ok: #4ED48A;
+    --tg-theme-bg-color: #12201F;
+    --tg-theme-secondary-bg-color: #0A1514;
+    --tg-theme-text-color: #EDF3EE;
+    --tg-theme-hint-color: #8FA39F;
+    --price: #B4D879;
+    --chip: color-mix(in srgb, var(--leaf) 12%, var(--card));
+    --shadow-1: 0 6px 18px -10px rgba(0, 0, 0, .8);
+    --shadow-2: 0 22px 44px -22px rgba(0, 0, 0, .9);
     color-scheme: dark;
   }
 }
+/* Telegram tungi mavzusi --tg-theme-* ni o'zi beradi; shunda ham narxlar o'qilsin */
+html.tg-dark { --price: #B4D879; --chip: color-mix(in srgb, var(--leaf) 12%, var(--card)); }
+
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 html, body { margin: 0; }
 body {
-  background: var(--page); color: var(--ink);
-  font: 15px/1.4 var(--f-ui);
-  padding-bottom: calc(28px + env(safe-area-inset-bottom, 0px));
+  background: var(--ground); color: var(--ink);
+  font: 15px/1.45 var(--ui); font-feature-settings: "tnum" 1, "lnum" 1;
   -webkit-font-smoothing: antialiased;
+  padding-bottom: calc(28px + env(safe-area-inset-bottom, 0px));
+  caret-color: var(--leaf-deep);
+  scrollbar-color: color-mix(in srgb, var(--petrol) 40%, transparent) transparent;
 }
-body.browser { padding-bottom: calc(100px + env(safe-area-inset-bottom, 0px)); }
+body.has-bar { padding-bottom: calc(104px + env(safe-area-inset-bottom, 0px)); }
+::selection { background: var(--leaf); color: var(--petrol-deep); }
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-thumb { background: color-mix(in srgb, var(--petrol) 35%, transparent); border-radius: 9px; }
 button { font: inherit; color: inherit; cursor: pointer; border: 0; background: none; padding: 0; }
-button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+button:focus-visible, input:focus-visible, textarea:focus-visible, a:focus-visible { outline: 2.5px solid var(--leaf); outline-offset: 2px; }
 [hidden] { display: none !important; }
-.hint { color: var(--hint); }
+svg.i { width: 18px; height: 18px; flex: none; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 .gut { padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.num { font-family: var(--display); font-style: italic; font-weight: 800; letter-spacing: -.01em; font-variant-numeric: tabular-nums; }
 
-/* ============ HERO ============ */
-.hero {
+/* ============ LIVREYA: bosh qism ============ */
+.livery {
   position: relative; overflow: hidden; color: #fff;
-  background:
-    radial-gradient(120% 90% at 100% 0%, var(--brand-2) 0%, transparent 55%),
-    linear-gradient(160deg, var(--brand) 0%, color-mix(in srgb, var(--brand) 70%, #4A1404) 100%);
-  padding-block: 20px 64px;
+  background: radial-gradient(120% 140% at 100% 0%, var(--petrol-soft) 0%, var(--petrol) 46%, var(--petrol-deep) 100%);
+  padding-block: 18px 66px;
 }
-.hero::after { /* nuqtali naqsh */
-  content: ""; position: absolute; inset: 0; opacity: .14; pointer-events: none;
-  background-image: radial-gradient(#fff 1.2px, transparent 1.3px); background-size: 16px 16px;
-  mask-image: linear-gradient(200deg, #000 10%, transparent 70%);
+.speed { /* tezlik chiziqlari — logotipdagi harakat */
+  position: absolute; right: -40px; top: 18px; width: 240px; height: 120px; pointer-events: none;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='120' viewBox='0 0 240 120'%3E%3Cg stroke='%238DB548' stroke-linecap='round' fill='none'%3E%3Cpath stroke-width='5' d='M78 16h150'/%3E%3Cpath stroke-width='3' opacity='.7' d='M132 36h98'/%3E%3Cpath stroke-width='5' d='M46 58h184'/%3E%3Cpath stroke-width='3' opacity='.7' d='M156 80h74'/%3E%3Cpath stroke-width='4' opacity='.85' d='M100 102h130'/%3E%3C/g%3E%3C/svg%3E") right center / contain no-repeat;
+  -webkit-mask: linear-gradient(90deg, transparent, #000 45%); mask: linear-gradient(90deg, transparent, #000 45%);
+  opacity: .55;
 }
-.brand { position: relative; z-index: 1; display: flex; align-items: center; gap: 12px; }
-.logo {
-  width: 50px; height: 50px; border-radius: 16px; flex: none; display: grid; place-items: center;
-  background: #fff; color: var(--brand); font: 700 17px/1 var(--f-display); letter-spacing: -.03em;
-  box-shadow: 0 6px 18px -6px rgba(0,0,0,.35);
-}
-.brand h1 { margin: 0; font: 700 21px/1.1 var(--f-display); letter-spacing: -.02em; }
-.brand p { margin: 4px 0 0; font-size: 13.5px; opacity: .88; }
-.facts { position: relative; z-index: 1; display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
-.fact { display: inline-flex; align-items: center; gap: 6px; padding: 7px 12px; border-radius: 999px; font-size: 13px; font-weight: 600; background: rgba(255,255,255,.16); backdrop-filter: blur(6px); }
+.brandrow { position: relative; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.mark { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.mark .badge { width: 54px; height: 54px; flex: none; border-radius: 17px; background: #fff; display: grid; place-items: center; box-shadow: 0 10px 22px -10px rgba(0,0,0,.6); }
+.mark .badge svg { width: 42px; height: 28px; }
+.word { font: 900 italic 23px/1 var(--display); letter-spacing: .01em; text-transform: uppercase; white-space: nowrap; }
+.word small { display: block; margin-top: 5px; font: 700 10.5px/1 var(--ui); letter-spacing: .32em; color: #B4D879; }
+.state { flex: none; display: inline-flex; align-items: center; gap: 7px; padding: 7px 12px 7px 10px; border-radius: 99px; background: rgba(255,255,255,.1); font-size: 12.5px; font-weight: 700; }
+.state::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--leaf); box-shadow: 0 0 0 4px rgba(141,181,72,.25); }
+.state.closed::before { background: #F0866F; box-shadow: 0 0 0 4px rgba(240,134,111,.25); }
+.facts { position: relative; display: flex; flex-wrap: wrap; gap: 6px 16px; margin-top: 16px; font-size: 13px; font-weight: 600; color: rgba(255,255,255,.88); }
+.facts span { display: inline-flex; align-items: center; gap: 6px; }
+.facts svg.i { width: 15px; height: 15px; color: #B4D879; }
 
-/* ============ SEARCH + CHIPS ============ */
-.searchbox { position: relative; z-index: 2; margin-top: -44px; }
-.search {
-  display: flex; align-items: center; gap: 10px; background: var(--card); border-radius: var(--r-md);
-  padding: 0 14px; box-shadow: var(--shadow);
-}
-.search svg { flex: none; color: var(--hint); }
-.search input { flex: 1; min-width: 0; border: 0; background: transparent; color: var(--ink); font: inherit; font-size: 15.5px; padding: 15px 0; outline: none; }
-.chips {
-  position: sticky; top: 0; z-index: 6; display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none;
-  padding-block: 12px; background: color-mix(in srgb, var(--page) 88%, transparent); backdrop-filter: blur(12px);
-}
-.chips::-webkit-scrollbar { display: none; }
-.chip { flex: none; padding: 9px 15px; border-radius: 999px; background: var(--card); font-weight: 600; font-size: 14px; white-space: nowrap; box-shadow: 0 0 0 1px var(--line) inset; transition: background .2s, color .2s; }
-.chip.on { background: var(--ink); color: var(--card); box-shadow: none; }
+/* qidiruv — livreya chetiga mingan */
+.searchbox { position: relative; z-index: 3; margin-top: -30px; }
+.search { display: flex; align-items: center; gap: 10px; height: 54px; padding: 0 16px; border-radius: 18px; background: var(--card); box-shadow: var(--shadow-2); }
+.search svg.i { color: var(--hint); }
+.search input { flex: 1; min-width: 0; border: 0; outline: none; background: transparent; color: var(--ink); font: 500 15.5px var(--ui); }
+.search input::placeholder { color: var(--hint); }
+.closednote { margin-top: 12px; display: flex; gap: 10px; align-items: flex-start; padding: 13px 14px; border-radius: var(--r-md); background: color-mix(in srgb, var(--danger) 10%, var(--card)); font-size: 14px; }
+.closednote svg.i { color: var(--danger); margin-top: 1px; }
 
-/* ============ SECTIONS ============ */
-.section { padding-block: 10px 6px; scroll-margin-top: 62px; }
-.sec-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
-.sec-head h2 { margin: 0; font: 700 17px/1.2 var(--f-display); letter-spacing: -.02em; }
-.sec-head span { font-size: 13px; color: var(--hint); white-space: nowrap; }
+/* bo'lim tablari */
+.tabs { position: sticky; top: 0; z-index: 6; display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; padding-block: 14px 12px; background: color-mix(in srgb, var(--ground) 90%, transparent); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); }
+.tabs::-webkit-scrollbar { display: none; }
+.tab { flex: none; height: 38px; padding: 0 16px; border-radius: 12px; background: var(--card); color: var(--ink); font-weight: 600; font-size: 14px; white-space: nowrap; box-shadow: inset 0 0 0 1px var(--line); transition: background .25s var(--ease), color .25s var(--ease); }
+.tab.on { background: var(--petrol); color: #fff; box-shadow: none; }
 
-/* rasm / emoji maydoni */
-.pic {
-  position: relative; overflow: hidden; display: grid; place-items: center; aspect-ratio: 4 / 3; max-width: 100%;
-  background:
-    radial-gradient(70% 70% at 30% 25%, hsl(var(--h) 95% 70% / .55), transparent 70%),
-    linear-gradient(145deg, hsl(var(--h) 80% 62% / .30), hsl(calc(var(--h) + 25) 70% 52% / .16)),
-    var(--page);
-}
-.pic img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; transform: scale(1.03); transition: opacity .35s ease, transform .5s ease; }
+/* bo'limlar */
+.section { padding-block: 6px 10px; scroll-margin-top: 66px; }
+.sechead { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin: 14px 0 12px; }
+.sechead h2 { margin: 0; font: 800 italic 21px/1.1 var(--display); letter-spacing: -.005em; color: var(--ink); }
+.sechead span { font-size: 13px; color: var(--hint); font-weight: 500; }
+
+/* rasm maydoni */
+.pic { position: relative; overflow: hidden; aspect-ratio: 4 / 3; max-width: 100%; background: linear-gradient(150deg, color-mix(in srgb, var(--leaf) 22%, var(--card)), color-mix(in srgb, var(--petrol) 14%, var(--card))); display: grid; place-items: center; }
+.pic .ph { width: 46%; max-width: 110px; opacity: .55; }
+.pic img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; transform: scale(1.04); transition: opacity .45s var(--ease), transform .7s var(--ease); }
 .pic img.in { opacity: 1; transform: none; }
-.pic.has-img .emo { opacity: .35; }
-.pic.has-img::after { /* pastki soyacha: rasm ustidagi belgilar o'qilishi uchun */
-  content: ""; position: absolute; inset: 0; pointer-events: none;
-  background: linear-gradient(180deg, rgba(0,0,0,.18) 0%, transparent 30%, transparent 75%, rgba(0,0,0,.12) 100%);
-}
-.sale-tag { position: absolute; right: 10px; top: 10px; z-index: 2; padding: 5px 9px; border-radius: 999px; background: var(--brand); color: #fff; font-size: 12px; font-weight: 800; box-shadow: 0 4px 12px -4px rgba(0,0,0,.4); }
-.badge { z-index: 2; }
-.line .sale-tag { display: none; }
-.closed p { margin: 12px 0 0; padding: 12px 14px; border-radius: 16px; background: color-mix(in srgb, var(--danger) 12%, var(--card)); color: var(--ink); font-size: 14px; }
-.credits { margin: 22px 0 6px; text-align: center; font-size: 11.5px; color: var(--hint); }
-.pic .emo { font-size: 54px; line-height: 1; filter: drop-shadow(0 10px 12px rgba(0,0,0,.22)); transform: rotate(-6deg); }
+.pic.has-img .ph { opacity: 0; }
+.sale { position: absolute; z-index: 2; right: 10px; top: 10px; padding: 5px 9px; border-radius: 10px; background: var(--leaf); color: var(--petrol-deep); font: 800 italic 13px/1 var(--display); box-shadow: 0 6px 14px -6px rgba(0,0,0,.45); }
+.flag { position: absolute; z-index: 2; left: 12px; top: 12px; display: inline-flex; align-items: center; gap: 6px; padding: 7px 11px; border-radius: 10px; background: var(--petrol); color: #fff; font: 800 italic 12.5px/1 var(--display); letter-spacing: .06em; text-transform: uppercase; }
+.flag svg.i { width: 14px; height: 14px; color: var(--leaf); }
 
-/* kun taomi — katta kartalar */
-.rail { display: flex; gap: 12px; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; margin-inline: calc(-1 * max(16px, env(safe-area-inset-left, 0px))); padding-inline: max(16px, env(safe-area-inset-left, 0px)); padding-bottom: 6px; }
-.rail::-webkit-scrollbar { display: none; }
-.feat { flex: 0 0 min(78%, 300px); scroll-snap-align: start; background: var(--card); border-radius: var(--r-lg); overflow: hidden; box-shadow: var(--shadow); display: flex; flex-direction: column; }
-.feat .pic { aspect-ratio: 16 / 10; }
-.feat .pic .emo { font-size: 72px; }
-.badge { position: absolute; left: 10px; top: 10px; z-index: 1; padding: 5px 10px; border-radius: 999px; background: var(--card); color: var(--brand); font-size: 12px; font-weight: 700; box-shadow: var(--shadow); }
-.feat .body { display: flex; align-items: flex-end; justify-content: space-between; gap: 10px; padding: 12px 14px 14px; }
-.feat h3 { margin: 0 0 4px; font-size: 16.5px; font-weight: 700; }
+/* Kun taomi — katta karta */
+.feature { background: var(--card); border-radius: var(--r-xl); overflow: hidden; box-shadow: var(--shadow-2); }
+.feature + .feature { margin-top: 14px; }
+.feature .pic { aspect-ratio: 16 / 10; }
+.feature .body { display: flex; align-items: flex-end; justify-content: space-between; gap: 14px; padding: 16px 16px 18px; }
+.feature h3 { margin: 0; font-size: 18px; font-weight: 700; line-height: 1.25; }
+.feature .price { font-size: 30px; margin-top: 8px; }
 
-/* deal progress */
-.deal { margin-bottom: 12px; padding: 12px 14px; border-radius: var(--r-md); background: var(--card); box-shadow: 0 0 0 1px color-mix(in srgb, var(--brand) 30%, transparent) inset; }
-.deal p { margin: 0 0 8px; font-size: 13.5px; }
-.deal b { color: var(--brand); }
-.bar { height: 6px; border-radius: 99px; background: var(--brand-soft); overflow: hidden; }
-.bar i { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, var(--brand), var(--brand-2)); transition: width .35s cubic-bezier(.2,.8,.2,1); }
-.deal.won { box-shadow: 0 0 0 1px color-mix(in srgb, var(--ok) 45%, transparent) inset; }
-.deal.won b { color: var(--ok); }
-.deal.won .bar i { background: var(--ok); }
-
-/* oddiy kartalar — 2 ustun */
+/* oddiy kartalar */
 .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
 @media (min-width: 560px) { .grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
-.card { background: var(--card); border-radius: var(--r-lg); overflow: hidden; box-shadow: var(--shadow); display: flex; flex-direction: column; }
-.card .body { padding: 10px 12px 12px; display: flex; flex-direction: column; gap: 8px; flex: 1; }
-.card h3 { margin: 0; font-size: 14.5px; font-weight: 600; line-height: 1.3; overflow-wrap: anywhere; flex: 1; }
-.card .foot { display: flex; align-items: center; justify-content: space-between; gap: 6px; min-height: 36px; }
+.card { display: flex; flex-direction: column; background: var(--card); border-radius: var(--r-lg); overflow: hidden; box-shadow: var(--shadow-1); }
+.card .body { flex: 1; display: flex; flex-direction: column; gap: 10px; padding: 11px 12px 12px; }
+.card h3 { flex: 1; margin: 0; font-size: 14.5px; font-weight: 600; line-height: 1.3; overflow-wrap: anywhere; }
+.card .foot { display: flex; align-items: center; justify-content: space-between; gap: 6px; min-height: 40px; }
 
-.price { font-weight: 800; font-size: 15px; font-variant-numeric: tabular-nums; white-space: nowrap; }
-.price small { font-weight: 600; font-size: 12px; color: var(--hint); }
-.price s { display: block; font-weight: 500; font-size: 12px; color: var(--hint); }
-.price.sale { color: var(--brand); }
+.price { color: var(--price); font-size: 19px; line-height: 1; white-space: nowrap; }
+.price small { font: 600 12px var(--ui); color: var(--hint); font-style: normal; margin-left: 2px; }
+.price s { display: block; margin-top: 4px; font: 500 12px var(--ui); color: var(--hint); }
 
-/* qo'shish / stepper */
-.add {
-  flex: none; width: 36px; height: 36px; border-radius: 12px; display: grid; place-items: center;
-  background: var(--brand); color: #fff; box-shadow: 0 6px 14px -6px color-mix(in srgb, var(--brand) 80%, transparent);
-  transition: transform .12s;
-}
+/* qo'shish va stepper */
+.add { flex: none; width: 42px; height: 42px; border-radius: 14px; display: grid; place-items: center; background: var(--leaf); color: var(--petrol-deep); box-shadow: 0 8px 16px -8px color-mix(in srgb, var(--leaf-deep) 90%, transparent); transition: transform .15s var(--ease); }
+.add svg.i { width: 20px; height: 20px; stroke-width: 2.6; }
 .add:active { transform: scale(.9); }
-.step { flex: none; display: flex; align-items: center; background: var(--brand); color: #fff; border-radius: 12px; height: 36px; animation: grow .18s ease-out; }
-.step button { width: 32px; height: 36px; display: grid; place-items: center; color: #fff; }
-.step span { min-width: 18px; text-align: center; font-weight: 800; font-size: 14px; font-variant-numeric: tabular-nums; }
-@keyframes grow { from { transform: scale(.85); opacity: .5; } to { transform: none; opacity: 1; } }
+.feature .add { width: 52px; height: 52px; border-radius: 17px; }
+.feature .add svg.i { width: 24px; height: 24px; }
+.step { flex: none; display: flex; align-items: center; height: 42px; border-radius: 14px; background: var(--petrol); color: #fff; animation: pop .22s var(--ease); }
+.feature .step { height: 52px; border-radius: 17px; }
+.step button { width: 36px; height: 100%; display: grid; place-items: center; color: #fff; }
+.step button svg.i { width: 16px; height: 16px; stroke-width: 2.6; }
+.step span { min-width: 20px; text-align: center; font: 800 italic 17px var(--display); }
+@keyframes pop { from { transform: scale(.82); opacity: .4; } to { transform: none; opacity: 1; } }
+
+/* ============ IMZO: qopqoq yo'l bo'ylab yuradi ============ */
+.road { margin: 14px 0 4px; padding: 14px 14px 12px; border-radius: var(--r-lg); background: var(--petrol); color: #fff; box-shadow: var(--shadow-1); }
+.road p { margin: 0 0 12px; font-size: 14px; line-height: 1.35; }
+.road p b { font-family: var(--display); font-style: italic; font-weight: 800; color: #B4D879; font-size: 15px; }
+.track { position: relative; height: 28px; }
+.track::before { content: ""; position: absolute; left: 0; right: 0; top: 19px; height: 4px; border-radius: 4px; background: repeating-linear-gradient(90deg, rgba(255,255,255,.28) 0 10px, transparent 10px 18px); }
+.track .done { position: absolute; left: 0; top: 19px; height: 4px; border-radius: 4px; background: var(--leaf); width: var(--p, 0%); transition: width .7s var(--ease); }
+.track .goal { position: absolute; right: -2px; top: 9px; width: 22px; height: 22px; border-radius: 50%; background: var(--petrol-deep); box-shadow: inset 0 0 0 2px var(--leaf); display: grid; place-items: center; }
+.track .goal svg.i { width: 12px; height: 12px; color: var(--leaf); stroke-width: 3; }
+.track .rider { position: absolute; top: 0; left: clamp(0px, calc(var(--p, 0%) - 40px), calc(100% - 78px)); width: 46px; height: 26px; transition: left .7s var(--ease); }
+.road.won { background: var(--leaf-pale); color: var(--petrol-deep); box-shadow: inset 0 0 0 1.5px var(--leaf); }
+.road.won p b { color: var(--leaf-deep); }
+.road.won .track::before { background: repeating-linear-gradient(90deg, rgba(0,36,46,.22) 0 10px, transparent 10px 18px); }
+.road.won .track .done { background: var(--leaf-deep); }
+.road.won .goal { background: var(--leaf-deep); box-shadow: none; }
+.road.won .goal svg.i { color: #fff; }
+.zip .rider { animation: zip .6s var(--ease); }
+@keyframes zip { 0% { transform: translateX(-10px); } 40% { transform: translateX(6px); } 100% { transform: none; } }
+.rider .lines { opacity: 0; transition: opacity .2s; }
+.zip .rider .lines { animation: lines .6s var(--ease); }
+@keyframes lines { 0% { opacity: 1; } 100% { opacity: 0; } }
+
 .nothing { text-align: center; padding: 48px 16px; color: var(--hint); }
+.nothing svg.i { width: 30px; height: 30px; margin-bottom: 8px; }
+.credits { margin: 26px 0 4px; text-align: center; font-size: 11.5px; color: var(--hint); }
 
-/* ============ CART ============ */
-.top { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-block: 16px 6px; }
-.top h2 { margin: 0; font: 700 22px/1.1 var(--f-display); letter-spacing: -.02em; }
-.link { color: var(--brand); font-weight: 600; font-size: 14px; padding: 6px 2px; }
-.box { background: var(--card); border-radius: var(--r-lg); box-shadow: var(--shadow); padding: 4px 14px; margin-top: 12px; }
-.box h3 { margin: 12px 0 10px; font-size: 15px; font-weight: 700; }
-.line { display: grid; grid-template-columns: 52px minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 10px 0; }
+/* ============ SAVAT ============ */
+.carthead { background: var(--petrol); color: #fff; padding-block: 14px 54px; position: relative; overflow: hidden; }
+.carthead .row { position: relative; display: flex; align-items: center; justify-content: space-between; }
+.back { display: inline-flex; align-items: center; gap: 6px; font-weight: 600; font-size: 14px; color: rgba(255,255,255,.85); padding: 6px 0; }
+.clear { font-size: 13.5px; font-weight: 600; color: #B4D879; padding: 6px 0; }
+.carthead h1 { position: relative; margin: 10px 0 0; font: 900 italic 30px/1 var(--display); text-transform: uppercase; letter-spacing: .01em; }
+.cartbody { margin-top: -38px; position: relative; display: grid; gap: 12px; }
+.box { background: var(--card); border-radius: var(--r-xl); box-shadow: var(--shadow-1); padding: 6px 16px; }
+.box h2 { display: flex; align-items: center; gap: 8px; margin: 14px 0 12px; font: 800 italic 18px var(--display); }
+.box h2 svg.i { color: var(--leaf-deep); }
+.line { display: grid; grid-template-columns: 58px minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 12px 0; }
 .line + .line { border-top: 1px solid var(--line); }
-.line .pic { width: 52px; aspect-ratio: 1; border-radius: 14px; }
-.line .pic .emo { font-size: 26px; }
+.line .pic { width: 58px; aspect-ratio: 1; border-radius: 16px; }
+.line .pic .ph { width: 60%; }
 .line h4 { margin: 0 0 3px; font-size: 14.5px; font-weight: 600; overflow-wrap: anywhere; }
-.line .sub { font-size: 13px; color: var(--hint); font-variant-numeric: tabular-nums; }
-.sum { display: grid; gap: 8px; padding: 12px 0 14px; font-variant-numeric: tabular-nums; }
-.sum div { display: flex; justify-content: space-between; gap: 12px; font-size: 14.5px; }
-.sum .free { color: var(--ok); font-weight: 600; }
-.sum .total { padding-top: 10px; border-top: 1px dashed var(--line); font-size: 18px; font-weight: 800; }
-.field { display: grid; gap: 6px; margin-bottom: 14px; }
+.line .sub { font-size: 13px; color: var(--hint); }
+.line .sub s { margin-left: 4px; }
+.cartbody .road { margin: 0; }
+.receipt { padding: 4px 0 6px; font-variant-numeric: tabular-nums; }
+.receipt .r { display: flex; justify-content: space-between; gap: 12px; padding: 7px 0; font-size: 14.5px; }
+.receipt .r span:first-child { color: var(--hint); }
+.receipt .free { color: var(--leaf-deep); font-weight: 700; }
+html.tg-dark .receipt .free { color: #B4D879; }
+.receipt .total { margin-top: 6px; padding-top: 14px; border-top: 2px dashed var(--line); align-items: baseline; }
+.receipt .total span:first-child { color: var(--ink); font-weight: 700; font-size: 16px; }
+.receipt .total .num { font-size: 30px; color: var(--price); }
+.field { display: grid; gap: 7px; margin-bottom: 14px; }
 .field label { font-size: 13px; font-weight: 600; color: var(--hint); }
-.field input, .field textarea {
-  width: 100%; border: 1.5px solid transparent; border-radius: 14px; padding: 13px 14px; font: inherit; font-size: 15.5px;
-  color: var(--ink); background: var(--page); resize: none; transition: border-color .15s;
-}
-.field input:focus, .field textarea:focus { border-color: var(--brand); outline: none; }
-.field.err input, .field.err textarea { border-color: var(--danger); }
-.field .msg { color: var(--danger); font-size: 12.5px; }
-.row { display: flex; gap: 8px; }
-.row input { flex: 1; min-width: 0; }
-.ghost { flex: none; padding: 0 14px; border-radius: 14px; background: var(--brand-soft); color: var(--brand); font-weight: 700; font-size: 13.5px; }
-.empty { text-align: center; padding: 64px 16px; }
-.empty .big { font-size: 56px; }
-.empty p { margin: 10px 0 18px; color: var(--hint); }
-.empty button { padding: 12px 22px; border-radius: 14px; background: var(--brand); color: #fff; font-weight: 700; }
-.secure { display: flex; gap: 8px; align-items: center; justify-content: center; margin: 14px 0 0; font-size: 12.5px; color: var(--hint); }
+.inwrap { display: flex; align-items: center; gap: 10px; min-height: 52px; padding: 0 14px; border-radius: var(--r-md); background: var(--ground); box-shadow: inset 0 0 0 1.5px transparent; transition: box-shadow .2s; }
+.inwrap:focus-within { box-shadow: inset 0 0 0 1.5px var(--leaf-deep); }
+.inwrap svg.i { color: var(--hint); }
+.inwrap input, .inwrap textarea { flex: 1; min-width: 0; border: 0; outline: none; background: transparent; color: var(--ink); font: 500 15.5px var(--ui); padding: 14px 0; resize: none; }
+.field.err .inwrap { box-shadow: inset 0 0 0 1.5px var(--danger); }
+.field .msg { color: var(--danger); font-size: 12.5px; font-weight: 600; }
+.mine { flex: none; display: inline-flex; align-items: center; gap: 6px; height: 34px; padding: 0 11px; border-radius: 10px; background: var(--leaf); color: var(--petrol-deep); font-weight: 700; font-size: 13px; }
+.mine svg.i { width: 15px; height: 15px; }
+.secure { display: flex; gap: 8px; align-items: center; justify-content: center; margin: 4px 0 0; font-size: 12.5px; color: var(--hint); }
+.secure svg.i { width: 14px; height: 14px; }
+.empty { text-align: center; padding: 56px 16px 40px; }
+.empty .art { width: 120px; margin: 0 auto 16px; color: var(--petrol); }
+.empty p { margin: 0 0 18px; color: var(--hint); }
+.empty button { height: 48px; padding: 0 22px; border-radius: 14px; background: var(--petrol); color: #fff; font-weight: 700; }
 
-/* ============ brauzer uchun pastki tugma (Telegram'da MainButton) ============ */
-.fake-main {
-  position: fixed; left: 0; right: 0; bottom: 0; z-index: 10;
-  padding: 10px max(16px, env(safe-area-inset-right, 0px)) calc(12px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px));
-  background: color-mix(in srgb, var(--card) 92%, transparent); backdrop-filter: blur(12px); border-top: 1px solid var(--line);
-}
-.fake-main button { width: 100%; padding: 15px; border-radius: 16px; background: var(--tg-theme-button-color); color: var(--tg-theme-button-text-color); font-weight: 700; font-size: 15.5px; }
-.modal { position: fixed; inset: 0; z-index: 20; display: grid; place-items: end center; background: rgba(0,0,0,.45); }
-.modal > div { width: min(480px, 100%); max-height: 85vh; overflow: auto; background: var(--card); border-radius: 24px 24px 0 0; padding: 24px 20px calc(20px + env(safe-area-inset-bottom, 0px)); animation: up .25s ease-out; }
-@keyframes up { from { transform: translateY(30px); opacity: .6; } to { transform: none; opacity: 1; } }
-.modal .ok { width: 56px; height: 56px; border-radius: 50%; display: grid; place-items: center; font-size: 28px; background: color-mix(in srgb, var(--ok) 16%, var(--card)); margin-bottom: 12px; }
-.modal h3 { margin: 0 0 6px; font: 700 19px/1.2 var(--f-display); }
-.modal pre { white-space: pre-wrap; font: 14px/1.5 var(--f-ui); background: var(--page); padding: 14px; border-radius: 14px; }
-.modal button { width: 100%; padding: 14px; border-radius: 14px; background: var(--brand); color: #fff; font-weight: 700; margin-top: 6px; }
-@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; } }
+/* ============ brauzer uchun pastki tugma (Telegram'da — MainButton) ============ */
+.fakebar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 10; padding: 10px max(14px, env(safe-area-inset-right, 0px)) calc(12px + env(safe-area-inset-bottom, 0px)) max(14px, env(safe-area-inset-left, 0px)); background: color-mix(in srgb, var(--ground) 86%, transparent); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); }
+.fakebar button { width: 100%; height: 58px; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 0 18px; border-radius: 18px; background: var(--petrol); color: #fff; font-weight: 700; font-size: 15.5px; box-shadow: 0 16px 30px -16px rgba(0,36,46,.8); }
+.fakebar .num { color: #B4D879; font-size: 20px; }
+.fakebar .cnt { display: inline-grid; place-items: center; min-width: 26px; height: 26px; padding: 0 7px; margin-right: 8px; border-radius: 9px; background: var(--leaf); color: var(--petrol-deep); font: 800 italic 14px var(--display); }
+.sheet { position: fixed; inset: 0; z-index: 20; display: grid; place-items: end center; background: rgba(0,20,26,.5); }
+.sheet > div { width: min(480px, 100%); max-height: 86vh; overflow: auto; background: var(--card); border-radius: 26px 26px 0 0; padding: 22px 20px calc(20px + env(safe-area-inset-bottom, 0px)); animation: up .35s var(--ease); }
+@keyframes up { from { transform: translateY(40px); opacity: .5; } to { transform: none; opacity: 1; } }
+.stamp { display: inline-flex; align-items: center; gap: 8px; padding: 8px 14px; border-radius: 10px; border: 2.5px solid var(--leaf-deep); color: var(--leaf-deep); font: 900 italic 15px var(--display); letter-spacing: .08em; text-transform: uppercase; transform: rotate(-3deg); }
+html.tg-dark .stamp { color: #B4D879; border-color: #B4D879; }
+.sheet h2 { margin: 16px 0 6px; font: 800 italic 22px var(--display); }
+.sheet p { margin: 0 0 12px; color: var(--hint); font-size: 14px; }
+.sheet pre { white-space: pre-wrap; font: 14px/1.6 var(--ui); background: var(--ground); padding: 14px; border-radius: var(--r-md); margin: 0 0 14px; }
+.sheet button { width: 100%; height: 52px; border-radius: 16px; background: var(--petrol); color: #fff; font-weight: 700; }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
 </style>
 </head>
 <body>
 
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <!-- TT belgisi: g'ildirakli qopqoq va tezlik chiziqlari -->
+    <symbol id="cloche" viewBox="0 0 66 40">
+      <g class="lines" stroke="currentColor" stroke-width="3" stroke-linecap="round" opacity=".55"><path d="M2 14h11M5 20h9M2 26h11"/></g>
+      <path d="M19 28a15 14 0 0 1 30 0z" fill="#8DB548"/>
+      <path d="M23 25a11 10 0 0 1 9-9" stroke="#C9E39A" stroke-width="2.4" stroke-linecap="round" fill="none"/>
+      <circle cx="34" cy="12.5" r="2.6" fill="#8DB548"/>
+      <rect x="15" y="27.5" width="38" height="3.6" rx="1.8" fill="#0C3C48"/>
+      <circle cx="23" cy="34.5" r="3.6" fill="#0C3C48"/><circle cx="23" cy="34.5" r="1.3" fill="#fff"/>
+      <circle cx="45" cy="34.5" r="3.6" fill="#0C3C48"/><circle cx="45" cy="34.5" r="1.3" fill="#fff"/>
+    </symbol>
+    <symbol id="i-truck" viewBox="0 0 24 24"><path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"/><path d="M15 18H9"/><path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.62l-3.48-4.35A1 1 0 0 0 17.52 8H14"/><circle cx="17" cy="18" r="2"/><circle cx="7" cy="18" r="2"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></symbol>
+    <symbol id="i-pin" viewBox="0 0 24 24"><path d="M20 10c0 5-5.5 10.2-7.4 11.8a1 1 0 0 1-1.2 0C9.5 20.2 4 15 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24"><path d="M5 12h14M12 5v14"/></symbol>
+    <symbol id="i-minus" viewBox="0 0 24 24"><path d="M5 12h14"/></symbol>
+    <symbol id="i-phone" viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z"/></symbol>
+    <symbol id="i-note" viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></symbol>
+    <symbol id="i-back" viewBox="0 0 24 24"><path d="m12 19-7-7 7-7M19 12H5"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></symbol>
+    <symbol id="i-lock" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></symbol>
+    <symbol id="i-flame" viewBox="0 0 24 24"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.4-.5-2-1-3-1.1-2.1-.2-4.1 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.2.4-2.3 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></symbol>
+    <symbol id="i-pause" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M10 15V9M14 15V9"/></symbol>
+    <symbol id="i-bag" viewBox="0 0 24 24"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><path d="M3 6h18M16 10a4 4 0 0 1-8 0"/></symbol>
+  </defs>
+</svg>
+
 <div id="menu-view">
-  <header class="hero gut">
-    <div class="brand">
-      <div class="logo" id="logo">TT</div>
-      <div><h1 id="cafe">Tezkor Taom</h1><p>Issiq taomlar va fast food</p></div>
+  <header class="livery gut">
+    <div class="speed" aria-hidden="true"></div>
+    <div class="brandrow">
+      <div class="mark">
+        <div class="badge"><svg aria-hidden="true"><use href="#cloche" style="color:#0C3C48"/></svg></div>
+        <div class="word" id="cafe">Tezkor Taom<small>NAMANGAN</small></div>
+      </div>
+      <span class="state" id="state">Ochiq</span>
     </div>
     <div class="facts" id="facts"></div>
   </header>
   <div class="searchbox gut">
     <label class="search">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-      <input id="q" type="search" placeholder="Taom qidirish…" aria-label="Taom qidirish" autocomplete="off">
+      <svg class="i"><use href="#i-search"/></svg>
+      <input id="q" type="search" placeholder="Taom qidirish" aria-label="Taom qidirish" autocomplete="off">
     </label>
+    <div id="closed"></div>
   </div>
-  <nav class="chips gut" id="chips" aria-label="Bo'limlar"></nav>
+  <nav class="tabs gut" id="tabs" aria-label="Bo'limlar"></nav>
   <main id="sections" class="gut"></main>
 </div>
 
-<div id="cart-view" class="gut" hidden>
-  <div class="top">
-    <h2>Savat</h2>
-    <button class="link" id="clear" type="button">Tozalash</button>
-  </div>
-  <div id="cart-body"></div>
+<div id="cart-view" hidden>
+  <header class="carthead gut">
+    <div class="speed" aria-hidden="true"></div>
+    <div class="row">
+      <button class="back" id="back" type="button"><svg class="i"><use href="#i-back"/></svg>Menyu</button>
+      <button class="clear" id="clear" type="button">Tozalash</button>
+    </div>
+    <h1>Savat</h1>
+  </header>
+  <div class="cartbody gut" id="cart-body"></div>
 </div>
 
-<div class="fake-main" id="fake-main" hidden><button type="button" id="fake-btn"></button></div>
-<div class="modal" id="modal" hidden><div>
-  <div class="ok">✅</div>
-  <h3>Buyurtma tayyor</h3>
-  <p class="hint">Telegram ichida bu buyurtma botga yuboriladi va oyna yopiladi. Brauzerda esa faqat ko'rsatiladi:</p>
-  <pre id="modal-pre"></pre>
-  <button type="button" id="modal-close">Yangi buyurtma</button>
+<div class="fakebar" id="fakebar" hidden><button type="button" id="fake-btn"></button></div>
+<div class="sheet" id="sheet" hidden><div>
+  <span class="stamp"><svg class="i"><use href="#i-check"/></svg>Qabul qilindi</span>
+  <h2>Buyurtma tayyor</h2>
+  <p>Telegram ichida bu buyurtma botga yuboriladi va oyna yopiladi. Brauzerda esa shu yerda ko'rsatiladi:</p>
+  <pre id="sheet-pre"></pre>
+  <button type="button" id="sheet-close">Yangi buyurtma</button>
 </div></div>
 
 <script>
@@ -272,10 +337,14 @@ button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px
   // ================================================================ Telegram
   const tg = window.Telegram && window.Telegram.WebApp;
   const inTg = !!(tg && tg.initData);
-  if (tg) { tg.ready(); tg.expand(); try { tg.setHeaderColor && tg.setHeaderColor('secondary_bg_color'); } catch (e) {} }
+  if (tg) {
+    tg.ready(); tg.expand();
+    try { tg.setHeaderColor('#0C3C48'); tg.setBackgroundColor && tg.setBackgroundColor('secondary_bg_color'); } catch (e) {}
+    if (inTg && tg.colorScheme === 'dark') document.documentElement.classList.add('tg-dark');
+  }
   const haptic = (t) => { try { if (!tg || !tg.HapticFeedback) return; (t === 'error' || t === 'success') ? tg.HapticFeedback.notificationOccurred(t) : tg.HapticFeedback.impactOccurred('light'); } catch (e) {} };
 
-  // ================================================================ menyu: bot uni URL orqali yuboradi (?m=...)
+  // ================================================================ menyu (bot URL orqali yuboradi: ?m=...)
   // Har bir taom: [id, nom, narx, rasm (ixtiyoriy), eski_narx (ixtiyoriy)]
   const DEMO = {
     n: 'Tezkor Taom Namangan', dl: "10 000 so'm", df: 10000, ff: 0, op: 1, ph: ['+998 33 675 55 50'], h: '08:00 – 00:00', b: [3, 35000],
@@ -304,29 +373,31 @@ button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px
   }
   const M = readMenu();
   const [BULK_MIN, BULK_PRICE] = M.b || [3, 35000];
-  const FEE = +M.df || 0;          // yetkazib berish narxi
-  const FREE_FROM = +M.ff || 0;    // shu summadan oshsa bepul (0 — hech qachon)
+  const FEE = +M.df || 0;
+  const FREE_FROM = +M.ff || 0;
   const OPEN = M.op === undefined ? true : !!M.op;
-  const HUES = [22, 2, 268, 195, 140, 45, 320];
+  const clean = (t) => String(t).replace(/^[\p{Extended_Pictographic}️‍\s]+/u, '').trim();   // bo'lim nomidagi emoji olib tashlanadi
   const sections = [];
-  if (M.t && M.t[1] && M.t[1].length) sections.push({ title: M.t[0] || 'Bugungi menyu', chip: '🍛 Kun taomi', daily: true, items: M.t[1] });
-  for (const [title, items] of M.c) sections.push({ title: title.replace(/^\p{Extended_Pictographic}\s*/u, ''), chip: title, daily: false, items, emo: (title.match(/^\p{Extended_Pictographic}/u) || [''])[0] });
+  if (M.t && M.t[1] && M.t[1].length) sections.push({ title: 'Kun taomi', daily: true, items: M.t[1] });
+  for (const [title, items] of M.c) if (items.length) sections.push({ title: clean(title), daily: false, items });
   const ITEMS = {};
-  sections.forEach((s, si) => { s.hue = HUES[si % HUES.length]; s.items.forEach(([id, name, price, img, old]) => { ITEMS[id] = { id, name, price, img, old: old > price ? old : 0, daily: s.daily, sec: si }; }); });
+  sections.forEach((s, si) => s.items.forEach(([id, name, price, img, old]) => { ITEMS[id] = { id, name, price, img, old: old > price ? old : 0, daily: s.daily, sec: si }; }));
   const hasDeal = sections[0] && sections[0].daily && BULK_PRICE < Math.max(...sections[0].items.map(i => i[2]));
 
   // ================================================================ yordamchilar
   const $ = (s) => document.querySelector(s);
-  const esc = (s) => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const esc = (s) => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const num = (n) => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
   const money = (n) => num(n) + " so'm";
-  const EMOJI = [[/lavash|shaurma|donar/i, '🌯'], [/burger/i, '🍔'], [/hot.?dog/i, '🌭'], [/pizza|pitsa/i, '🍕'], [/kfc|qanot|strips/i, '🍗'], [/fri/i, '🍟'],
-    [/cola|fanta|sprite|sok|limonad/i, '🥤'], [/suv/i, '💧'], [/choy|kofe|coffee/i, '🍵'], [/osh|palov/i, '🍚'], [/manti|chuchvara|somsa|xonim/i, '🥟'],
-    [/mastava|sho'?rva|lag'?mon|norin|ugra/i, '🍜'], [/shashlik|kabob/i, '🍢'], [/salat/i, '🥗'], [/kombo|set|damas/i, '🎁'], [/say|qovurma|dimlama|tovuq/i, '🍲'], [/tort|desert|muzqaymoq/i, '🍰']];
-  const emojiFor = (it) => { for (const [re, e] of EMOJI) if (re.test(it.name)) return e; return sections[it.sec].emo || '🍽'; };
+  const ic = (id, cls = 'i') => `<svg class="${cls}" aria-hidden="true"><use href="#i-${id}"/></svg>`;
+  const placeholder = `<svg class="ph" viewBox="0 0 66 40" aria-hidden="true"><use href="#cloche" style="color:#0C3C48"/></svg>`;
+  // bir marta yuklangan rasm qayta chizilganda miltillamasin — darhol ko'rinadi
+  const loadedSrc = new Set();
+  document.addEventListener('load', (e) => { if (e.target.tagName === 'IMG') loadedSrc.add(e.target.getAttribute('src')); }, true);
   const pic = (it, extra = '') => {
-    const off = it.old ? `<span class="sale-tag">−${Math.round((1 - it.price / it.old) * 100)}%</span>` : '';
-    return `<div class="pic${it.img ? ' has-img' : ''}" style="--h:${sections[it.sec].hue}">${extra}${off}<span class="emo" aria-hidden="true">${emojiFor(it)}</span>${it.img ? `<img src="${esc(it.img)}" alt="${esc(it.name)}" loading="lazy" decoding="async" onload="this.classList.add('in')" onerror="this.closest('.pic').classList.remove('has-img');this.remove()">` : ''}</div>`;
+    const sale = it.old ? `<span class="sale">−${Math.round((1 - it.price / it.old) * 100)}%</span>` : '';
+    const ready = it.img && loadedSrc.has(it.img);
+    return `<div class="pic${it.img ? ' has-img' : ''}">${extra}${sale}${placeholder}${it.img ? `<img${ready ? ' class="in"' : ''} src="${esc(it.img)}" alt="${esc(it.name)}" loading="${ready ? 'eager' : 'lazy'}" decoding="async" onload="this.classList.add('in')" onerror="this.closest('.pic').classList.remove('has-img');this.remove()">` : ''}</div>`;
   };
   const store = {
     get(k) { try { return localStorage.getItem('tt_' + k) || ''; } catch (e) { return ''; } },
@@ -335,6 +406,7 @@ button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px
 
   // ================================================================ savat
   const cart = {};
+  let lastAdded = '';
   function calc() {
     const rows = []; let dailyQty = 0;
     for (const [id, q] of Object.entries(cart)) { const it = ITEMS[id]; if (!it || q < 1) continue; rows.push({ it, q }); if (it.daily) dailyQty += q; }
@@ -342,7 +414,7 @@ button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px
     let total = 0, count = 0, full = 0;
     for (const r of rows) {
       r.unit = bulk && r.it.daily ? Math.min(r.it.price, BULK_PRICE) : r.it.price;
-      r.sum = r.unit * r.q; total += r.sum; full += r.it.price * r.q; count += r.q;
+      r.sum = r.unit * r.q; total += r.sum; full += (r.it.old || r.it.price) * r.q; count += r.q;
     }
     const delivery = (rows.length && FEE > 0 && !(FREE_FROM > 0 && total >= FREE_FROM)) ? FEE : 0;
     return { rows, subtotal: total, delivery, total: total + delivery, count, bulk, dailyQty, saved: full - total };
@@ -350,39 +422,56 @@ button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px
   function change(id, d) {
     const q = Math.max(0, Math.min(50, (cart[id] || 0) + d));
     if (q) cart[id] = q; else delete cart[id];
+    lastAdded = d > 0 ? id : '';
     haptic();
     render();
   }
   const control = (id) => cart[id]
-    ? `<div class="step"><button type="button" data-d="-1" data-id="${id}" aria-label="Kamaytirish"><svg width="14" height="14" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M5 12h14"/></svg></button><span>${cart[id]}</span><button type="button" data-d="1" data-id="${id}" aria-label="Ko'paytirish"><svg width="14" height="14" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button></div>`
-    : `<button class="add" type="button" data-d="1" data-id="${id}" aria-label="Savatga qo'shish"><svg width="18" height="18" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>`;
+    ? `<div class="step"><button type="button" data-d="-1" data-id="${id}" aria-label="Kamaytirish">${ic('minus')}</button><span>${cart[id]}</span><button type="button" data-d="1" data-id="${id}" aria-label="Ko'paytirish">${ic('plus')}</button></div>`
+    : `<button class="add" type="button" data-d="1" data-id="${id}" aria-label="Savatga qo'shish">${ic('plus')}</button>`;
   const priceHtml = (it, c) => (c.bulk && it.daily && BULK_PRICE < it.price)
-    ? `<div class="price sale">${num(BULK_PRICE)} <small>so'm</small><s>${money(it.price)}</s></div>`
+    ? `<div class="price num">${num(BULK_PRICE)}<small>so'm</small><s>${money(it.price)}</s></div>`
     : it.old
-      ? `<div class="price sale">${num(it.price)} <small>so'm</small><s>${money(it.old)}</s></div>`
-      : `<div class="price">${num(it.price)} <small>so'm</small></div>`;
-  function dealHtml(c) {
+      ? `<div class="price num">${num(it.price)}<small>so'm</small><s>${money(it.old)}</s></div>`
+      : `<div class="price num">${num(it.price)}<small>so'm</small></div>`;
+
+  // yo'l: qopqoq maqsad tomon yuradi (imzo harakati)
+  const road = (pct, text, won, key) =>
+    `<div class="road${won ? ' won' : ''}${lastAdded && key === 'deal' && ITEMS[lastAdded] && ITEMS[lastAdded].daily ? ' zip' : ''}${lastAdded && key === 'free' ? ' zip' : ''}">
+      <p>${text}</p>
+      <div class="track" style="--p:${Math.max(0, Math.min(100, pct))}%">
+        <i class="done"></i>
+        <svg class="rider" viewBox="0 0 66 40" aria-hidden="true"><use href="#cloche" style="color:${won ? '#0C3C48' : '#B4D879'}"/></svg>
+        <span class="goal">${ic('check')}</span>
+      </div>
+    </div>`;
+  function dealRoad(c) {
     if (!hasDeal) return '';
-    const pct = Math.min(100, c.dailyQty / BULK_MIN * 100);
-    const text = c.bulk ? `🎉 Chegirma ishladi: har bir kun taomi <b>${money(BULK_PRICE)}</b>`
-      : c.dailyQty ? `Yana <b>${BULK_MIN - c.dailyQty} ta</b> qo'shing — har biri <b>${money(BULK_PRICE)}</b> bo'ladi`
-      : `🔥 ${BULK_MIN} ta va undan ko'p olsangiz — har biri <b>${money(BULK_PRICE)}</b>`;
-    return `<div class="deal${c.bulk ? ' won' : ''}"><p>${text}</p><div class="bar"><i style="width:${pct}%"></i></div></div>`;
+    const left = BULK_MIN - c.dailyQty;
+    const text = c.bulk ? `Chegirma ishladi — har bir kun taomi <b>${money(BULK_PRICE)}</b>`
+      : c.dailyQty ? `Yana <b>${left} ta</b> qo'shing — har biri <b>${money(BULK_PRICE)}</b> bo'ladi`
+      : `<b>${BULK_MIN} ta</b> va undan ko'p olsangiz — har biri <b>${money(BULK_PRICE)}</b>`;
+    return road(c.dailyQty / BULK_MIN * 100, text, c.bulk, 'deal');
+  }
+  function freeRoad(c) {
+    if (!(FEE > 0 && FREE_FROM > 0) || !c.count) return '';
+    const won = c.subtotal >= FREE_FROM;
+    const text = won ? `Yetkazib berish <b>bepul</b>` : `Yana <b>${money(FREE_FROM - c.subtotal)}</b> lik taom — yetkazib berish bepul`;
+    return road(c.subtotal / FREE_FROM * 100, text, won, 'free');
   }
 
   // ================================================================ menyu sahifasi
-  const initials = (M.n || 'TT').split(/\s+/).slice(0, 2).map(w => w[0]).join('').toUpperCase();
-  $('#logo').textContent = initials;
-  $('#cafe').textContent = (M.n || 'Tezkor Taom').replace(/\s+Namangan$/i, '');
-  const feeFact = FEE > 0 ? `🚚 Yetkazish ${num(FEE)} so'm${FREE_FROM > 0 ? ` · ${num(FREE_FROM)} dan bepul` : ''}` : '🚚 Yetkazish bepul';
-  $('#facts').innerHTML = [OPEN ? '' : '⏸ Hozir yopiq', feeFact, M.h ? `⏰ ${esc(M.h)}` : '', '📍 Namangan'].filter(Boolean).map(f => `<span class="fact">${f}</span>`).join('');
-  if (!OPEN) {
-    const b = document.createElement('div');
-    b.className = 'closed gut';
-    b.innerHTML = `<p>⏸ <b>Hozir buyurtma qabul qilinmayapti.</b> Menyuni ko'rishingiz mumkin.${M.h ? `<br>Ish vaqti: ${esc(M.h)}` : ''}</p>`;
-    $('.searchbox').after(b);
-  }
-  $('#chips').innerHTML = sections.map((s, i) => `<button class="chip${i ? '' : ' on'}" type="button" data-sec="${i}">${esc(s.chip)}</button>`).join('');
+  const cafeName = (M.n || 'Tezkor Taom').replace(/\s+Namangan$/i, '');
+  $('#cafe').innerHTML = `${esc(cafeName)}<small>NAMANGAN</small>`;
+  $('#state').textContent = OPEN ? 'Ochiq' : 'Yopiq';
+  $('#state').classList.toggle('closed', !OPEN);
+  $('#facts').innerHTML = [
+    `${ic('truck')}${FEE > 0 ? `Yetkazish ${money(FEE)}${FREE_FROM > 0 ? ` · ${num(FREE_FROM)} dan bepul` : ''}` : 'Yetkazish bepul'}`,
+    M.h ? `${ic('clock')}${esc(M.h)}` : '',
+    `${ic('pin')}Namangan`,
+  ].filter(Boolean).map(f => `<span>${f}</span>`).join('');
+  if (!OPEN) $('#closed').innerHTML = `<div class="closednote">${ic('pause')}<div><b>Hozir buyurtma qabul qilinmayapti.</b><br>Menyuni ko'rishingiz mumkin${M.h ? ` · ish vaqti ${esc(M.h)}` : ''}.</div></div>`;
+  $('#tabs').innerHTML = sections.map((s, i) => `<button class="tab${i ? '' : ' on'}" type="button" data-sec="${i}">${esc(s.title)}</button>`).join('');
 
   let query = '';
   let io = null;
@@ -391,12 +480,12 @@ button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px
     const html = sections.map((s, si) => {
       const items = s.items.map(x => ITEMS[x[0]]).filter(it => !q || it.name.toLowerCase().includes(q));
       if (!items.length) return '';
-      const head = `<div class="sec-head"><h2>${esc(s.title)}</h2><span>${items.length} ta</span></div>`;
+      const head = `<div class="sechead"><h2>${esc(s.title)}</h2><span>${items.length} ta</span></div>`;
       if (s.daily) {
-        return `<section class="section" id="sec-${si}">${head}${dealHtml(c)}<div class="rail">${items.map(it => `
-          <article class="feat">${pic(it, '<span class="badge">Kun taomi</span>')}
+        return `<section class="section" id="sec-${si}">${head}${items.map(it => `
+          <article class="feature">${pic(it, `<span class="flag">${ic('flame')}Kun taomi</span>`)}
             <div class="body"><div><h3>${esc(it.name)}</h3>${priceHtml(it, c)}</div>${control(it.id)}</div>
-          </article>`).join('')}</div></section>`;
+          </article>`).join('')}${dealRoad(c)}</section>`;
       }
       return `<section class="section" id="sec-${si}">${head}<div class="grid">${items.map(it => `
         <article class="card">${pic(it)}
@@ -404,16 +493,16 @@ button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px
         </article>`).join('')}</div></section>`;
     }).join('');
     const credits = html.includes('has-img') ? `<p class="credits">Rasmlar namuna uchun · Wikimedia Commons (CC)</p>` : '';
-    $('#sections').innerHTML = html ? html + credits : `<div class="nothing">🔍<br>"${esc(query)}" bo'yicha hech narsa topilmadi</div>`;
-    $('#chips').hidden = !!q;
+    $('#sections').innerHTML = html ? html + credits : `<div class="nothing">${ic('search')}<br>«${esc(query)}» bo'yicha hech narsa topilmadi</div>`;
+    $('#tabs').hidden = !!q;
     if ('IntersectionObserver' in window) {
       if (io) io.disconnect();
       io = new IntersectionObserver((ents) => {
         for (const en of ents) if (en.isIntersecting) {
           const i = en.target.id.split('-')[1];
-          document.querySelectorAll('.chip').forEach(x => x.classList.toggle('on', x.dataset.sec === i));
+          document.querySelectorAll('.tab').forEach(x => x.classList.toggle('on', x.dataset.sec === i));
         }
-      }, { rootMargin: '-70px 0px -65% 0px' });
+      }, { rootMargin: '-80px 0px -60% 0px' });
       document.querySelectorAll('#sections .section').forEach(s => io.observe(s));
     }
   }
@@ -423,7 +512,7 @@ button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px
     const body = $('#cart-body');
     $('#clear').hidden = !c.count;
     if (!c.rows.length) {
-      body.innerHTML = `<div class="empty"><div class="big">🛒</div><p>Savat hozircha bo'sh</p><button type="button" data-go="menu">Menyuga o'tish</button></div>`;
+      body.innerHTML = `<div class="box empty"><svg class="art" viewBox="0 0 66 40" aria-hidden="true"><use href="#cloche" style="color:#0C3C48"/></svg><p>Savat hozircha bo'sh — qopqoq kutib turibdi.</p><button type="button" data-go="menu">Menyuni ochish</button></div>`;
       return;
     }
     const keep = { phone: $('#phone') ? $('#phone').value : store.get('phone'), address: $('#address') ? $('#address').value : store.get('address'), note: $('#note') ? $('#note').value : '' };
@@ -431,40 +520,38 @@ button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px
     body.innerHTML = `
       <div class="box">
         ${c.rows.map(r => `<div class="line">${pic(r.it)}
-          <div><h4>${esc(r.it.name)}</h4><div class="sub">${money(r.unit)}${r.unit < r.it.price ? ` <s>${num(r.it.price)}</s>` : ''}</div></div>
+          <div><h4>${esc(r.it.name)}</h4><div class="sub">${money(r.unit)}${r.unit < (r.it.old || r.it.price) ? `<s>${num(r.it.old || r.it.price)}</s>` : ''}</div></div>
           ${control(r.it.id)}</div>`).join('')}
       </div>
-      ${c.dailyQty ? `<div style="margin-top:12px">${dealHtml(c)}</div>` : ''}
+      ${c.dailyQty ? dealRoad(c) : ''}
+      ${freeRoad(c)}
       <div class="box">
-        <div class="sum">
-          <div><span class="hint">Taomlar (${c.count} ta)</span><span>${money(c.subtotal + c.saved)}</span></div>
-          ${c.saved ? `<div><span class="hint">Chegirma</span><span class="free">−${money(c.saved)}</span></div>` : ''}
-          <div><span class="hint">Yetkazib berish</span>${c.delivery ? `<span>${money(c.delivery)}</span>` : `<span class="free">bepul</span>`}</div>
-          <div class="total"><span>Jami</span><span>${money(c.total)}</span></div>
+        <div class="receipt">
+          <div class="r"><span>Taomlar · ${c.count} ta</span><span>${money(c.subtotal + c.saved)}</span></div>
+          ${c.saved ? `<div class="r"><span>Chegirma</span><span class="free">−${money(c.saved)}</span></div>` : ''}
+          <div class="r"><span>Yetkazib berish</span>${c.delivery ? `<span>${money(c.delivery)}</span>` : `<span class="free">bepul</span>`}</div>
+          <div class="r total"><span>Jami</span><span class="num">${num(c.total)} <small style="font:600 13px var(--ui);color:var(--hint)">so'm</small></span></div>
         </div>
-        ${c.delivery && FREE_FROM > 0 ? `<div class="deal" style="margin:0 0 14px"><p>🚚 Yana <b>${money(FREE_FROM - c.subtotal)}</b> lik taom qo'shsangiz — yetkazib berish bepul</p><div class="bar"><i style="width:${Math.min(100, c.subtotal / FREE_FROM * 100)}%"></i></div></div>` : ''}
       </div>
       <div class="box">
-        <h3>Yetkazib berish ma'lumotlari</h3>
+        <h2>${ic('truck')}Qayerga yetkazamiz</h2>
         <div class="field" id="f-phone">
           <label for="phone">Telefon raqam</label>
-          <div class="row">
-            <input id="phone" type="tel" inputmode="tel" placeholder="+998 90 123 45 67" autocomplete="tel">
-            ${canAsk ? '<button class="ghost" id="tg-phone" type="button">📱 Raqamim</button>' : ''}
-          </div>
+          <div class="inwrap">${ic('phone')}<input id="phone" type="tel" inputmode="tel" placeholder="+998 90 123 45 67" autocomplete="tel">
+            ${canAsk ? `<button class="mine" id="tg-phone" type="button">${ic('check')}Raqamim</button>` : ''}</div>
           <span class="msg" hidden>Raqamni to'liq kiriting</span>
         </div>
         <div class="field" id="f-address">
           <label for="address">Manzil</label>
-          <textarea id="address" rows="2" placeholder="Ko'cha, uy raqami, mo'ljal" autocomplete="street-address"></textarea>
-          <span class="msg" hidden>Manzilni yozing (kamida 5 ta harf)</span>
+          <div class="inwrap">${ic('pin')}<textarea id="address" rows="2" placeholder="Ko'cha, uy raqami, mo'ljal" autocomplete="street-address"></textarea></div>
+          <span class="msg" hidden>Manzilni yozing — kamida 5 ta harf</span>
         </div>
         <div class="field">
           <label for="note">Izoh — ixtiyoriy</label>
-          <input id="note" placeholder="Masalan: achchiq bo'lmasin, 2-qavat" maxlength="300">
+          <div class="inwrap">${ic('note')}<input id="note" placeholder="Masalan: achchiq bo'lmasin, 2-qavat" maxlength="300"></div>
         </div>
       </div>
-      <p class="secure">🔒 Ma'lumotlaringiz faqat buyurtmani yetkazish uchun ishlatiladi</p>`;
+      <p class="secure">${ic('lock')}Ma'lumotlaringiz faqat yetkazib berish uchun ishlatiladi</p>`;
     $('#phone').value = keep.phone; $('#address').value = keep.address; $('#note').value = keep.note;
     $('#phone').oninput = () => fieldErr('#f-phone', false);
     $('#address').oninput = () => fieldErr('#f-address', false);
@@ -479,6 +566,7 @@ button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px
     const c = calc();
     if (view === 'menu') renderMenu(c); else renderCart(c);
     mainButton(c);
+    lastAdded = '';
   }
   function go(v) {
     view = v;
@@ -488,18 +576,19 @@ button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px
     render();
   }
 
-  // ================================================================ asosiy tugma
+  // ================================================================ asosiy tugma (Telegram MainButton)
   function mainButton(c) {
-    let text = null;
-    if (view === 'menu' && c.count) text = `Savatga o'tish · ${c.count} ta · ${money(c.total)}`;
-    if (view === 'cart' && c.count) text = OPEN ? `Buyurtma berish · ${money(c.total)}` : '⏸ Hozir buyurtma qabul qilinmayapti';
+    let label = null, amount = '';
+    if (view === 'menu' && c.count) { label = 'Savatga o\'tish'; amount = money(c.total); }
+    if (view === 'cart' && c.count) { label = OPEN ? 'Buyurtma berish' : 'Hozir buyurtma qabul qilinmayapti'; amount = OPEN ? money(c.total) : ''; }
     if (inTg) {
-      if (text) tg.MainButton.setParams({ text, is_visible: true, is_active: true }); else tg.MainButton.hide();
+      if (label) tg.MainButton.setParams({ text: amount ? `${label} · ${amount}` : label, is_visible: true, is_active: true, color: '#0C3C48', text_color: '#FFFFFF' });
+      else tg.MainButton.hide();
       if (view === 'cart') tg.BackButton.show(); else tg.BackButton.hide();
     } else {
-      $('#fake-main').hidden = !text;
-      document.body.classList.toggle('browser', !!text);
-      if (text) $('#fake-btn').textContent = text;
+      $('#fakebar').hidden = !label;
+      document.body.classList.toggle('has-bar', !!label);
+      if (label) $('#fake-btn').innerHTML = `<span>${view === 'menu' ? `<span class="cnt">${c.count}</span>` : ''}${esc(label)}</span>${amount ? `<span class="num">${esc(amount)}</span>` : ''}`;
     }
   }
   const onMain = () => view === 'menu' ? go('cart') : submit();
@@ -525,35 +614,35 @@ button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px
     haptic('success');
     if (inTg) {
       try { tg.sendData(JSON.stringify(payload)); }
-      catch (e) { tg.showAlert("Buyurtmani yuborib bo'lmadi. Menyuni botdagi pastki «🍽 Menyu» tugmasi orqali oching."); }
+      catch (e) { tg.showAlert("Buyurtmani yuborib bo'lmadi. Menyuni botdagi pastki «Menyu va buyurtma» tugmasi orqali oching."); }
       return;
     }
-    $('#modal-pre').textContent = c.rows.map(r => `• ${r.it.name} × ${r.q} = ${money(r.sum)}`).join('\n')
-      + `\n\nJami: ${money(c.total)}\n📞 ${phone}\n📍 ${address}` + (note ? `\n📝 ${note}` : '');
-    $('#modal').hidden = false;
+    $('#sheet-pre').textContent = c.rows.map(r => `${r.it.name} × ${r.q} — ${money(r.sum)}`).join('\n')
+      + (c.delivery ? `\nYetkazib berish — ${money(c.delivery)}` : '') + `\n\nJami: ${money(c.total)}\nTelefon: ${phone}\nManzil: ${address}` + (note ? `\nIzoh: ${note}` : '');
+    $('#sheet').hidden = false;
   }
 
   // ================================================================ hodisalar
   document.addEventListener('click', (e) => {
     const b = e.target.closest('[data-d]');
     if (b) return change(b.dataset.id, +b.dataset.d);
-    const chip = e.target.closest('.chip');
-    if (chip) {
-      document.querySelectorAll('.chip').forEach(x => x.classList.toggle('on', x === chip));
-      const el = document.getElementById('sec-' + chip.dataset.sec);
+    const tab = e.target.closest('.tab');
+    if (tab) {
+      document.querySelectorAll('.tab').forEach(x => x.classList.toggle('on', x === tab));
+      const el = document.getElementById('sec-' + tab.dataset.sec);
       if (el) el.scrollIntoView({ behavior: 'smooth' });
       return;
     }
     if (e.target.closest('[data-go="menu"]')) go('menu');
   });
   $('#q').addEventListener('input', (e) => { query = e.target.value.trim(); render(); });
-  // sahifa tepasida doim birinchi bo'lim belgilansin
-  addEventListener('scroll', () => {
-    if (scrollY < 120 && view === 'menu') document.querySelectorAll('.chip').forEach((x, i) => x.classList.toggle('on', i === 0));
-  }, { passive: true });
+  $('#back').onclick = () => go('menu');
   $('#clear').onclick = () => { for (const k in cart) delete cart[k]; haptic(); render(); };
   $('#fake-btn').onclick = onMain;
-  $('#modal-close').onclick = () => { $('#modal').hidden = true; for (const k in cart) delete cart[k]; go('menu'); };
+  $('#sheet-close').onclick = () => { $('#sheet').hidden = true; for (const k in cart) delete cart[k]; go('menu'); };
+  addEventListener('scroll', () => {
+    if (scrollY < 120 && view === 'menu') document.querySelectorAll('.tab').forEach((x, i) => x.classList.toggle('on', i === 0));
+  }, { passive: true });
   if (inTg) {
     tg.MainButton.onClick(onMain);
     tg.BackButton.onClick(() => go('menu'));
