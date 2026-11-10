@@ -158,9 +158,19 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--brand); out
 .field:last-child { margin-bottom: 0; }
 .field label { font-size: 13px; font-weight: 600; color: var(--hint); }
 .field input { width: 100%; border: 1.5px solid transparent; border-radius: 12px; padding: 12px 14px; font: inherit; font-size: 15.5px; color: var(--ink); background: var(--page); }
-.field input:focus { border-color: var(--brand); outline: none; }
+.field input:focus, .field textarea:focus { border-color: var(--brand); outline: none; }
+.field textarea { width: 100%; border: 1.5px solid transparent; border-radius: 12px; padding: 12px 14px; font: inherit; font-size: 15px; line-height: 1.45; color: var(--ink); background: var(--page); resize: vertical; }
+.bigtoggle { width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 14px; text-align: left; padding: 14px; border-radius: 16px; background: color-mix(in srgb, var(--ok) 12%, var(--card)); }
+.bigtoggle b { display: block; font-size: 15.5px; }
+.bigtoggle small { display: block; margin-top: 3px; font-size: 12.5px; color: var(--hint); }
+.bigtoggle .sw { flex: none; width: 52px; height: 30px; border-radius: 99px; background: var(--ok); position: relative; transition: background .2s; }
+.bigtoggle .sw::after { content: ""; position: absolute; top: 3px; left: 25px; width: 24px; height: 24px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.25); transition: left .2s; }
+.bigtoggle.is-off { background: color-mix(in srgb, var(--danger) 12%, var(--card)); }
+.bigtoggle.is-off .sw { background: color-mix(in srgb, var(--hint) 50%, transparent); }
+.bigtoggle.is-off .sw::after { left: 3px; }
 .field .help { font-size: 12.5px; color: var(--hint); }
-.duo { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.duo { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; align-items: end; }
+.duo .field { margin-bottom: 14px; }
 .preview { padding: 12px 14px; border-radius: 14px; background: var(--brand-soft); font-size: 13.5px; }
 .preview b { color: var(--brand); }
 
@@ -216,7 +226,9 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--brand); out
   // ================================================================ ma'lumot (bot URL orqali yuboradi: ?a=...)
   const DEMO = {
     n: 'Tezkor Taom Namangan', at: '14:32',
-    s: { bm: 3, bp: 35000, dl: "shahar bo'ylab bepul", h: '08:00 – 00:00', ne: 5 },
+    s: { bm: 3, bp: 35000, h: '08:00 – 00:00', ne: 5, df: 10000, ff: 0, op: 1, n: 'Tezkor Taom Namangan', ph: ['+998 33 675 55 50', '+998 33 765 55 50'],
+         ab: "🍛 Tezkor Taom Namangan — issiq taomlar va fast food. 🚚 Shahar bo'ylab yetkazib berish. ⏰ 08:00–00:00",
+         ds: "🍛 Tezkor Taom Namangan\n\nHar kuni issiq va mazali taomlar, fast food va kombo setlar — endi bir necha bosishda!\n\n✅ Menyuni rasmlari bilan ko'ring\n✅ Savatga qo'shing va buyurtma bering\n✅ Buyurtma holatini shu yerda kuzating\n\n⏰ 08:00 – 00:00\n☎️ +998 33 675 55 50\n\nBoshlash uchun «Start» ni bosing 👇" },
     t: ['Bugungi menyu', [['d0_1', 'Set taom: Tovuq say', 40000, 0, 'img/tovuq-say.jpg']]],
     c: [
       ['kg', "⚖️ Kilo bo'yicha", [['osh_kg', 'Osh (1 kg)', 40000, 0, 'img/osh.jpg'], ['kfc_kg', 'KFC (1 kg)', 90000, 0, 'img/kfc.jpg'], ['norin_kg', 'Norin (1 kg)', 90000, 1, 'img/norin.jpg']]],
@@ -257,7 +269,9 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--brand); out
       { id: '__today', title: '🍛 Kun taomi', daily: true, items: D.t[1].map(mkItem) },
       ...D.c.map(([id, title, items]) => ({ id, title, items: items.map(mkItem) })),
     ],
-    s: { bm: String(D.s.bm), bp: String(D.s.bp), dl: D.s.dl, h: D.s.h, ne: String(D.s.ne || 1) },
+    s: { bm: String(D.s.bm), bp: String(D.s.bp), h: D.s.h || '', ne: String(D.s.ne || 1),
+         df: String(D.s.df || 0), ff: String(D.s.ff || 0), op: D.s.op === undefined ? true : !!D.s.op,
+         n: D.s.n || D.n || '', ph: (D.s.ph || []).join('\n'), ab: D.s.ab || '', ds: D.s.ds || '' },
   };
   const snapshot = () => JSON.stringify([state.cats.map(c => [c.id, c.title, c.items.map(i => [i.id, i.name.trim(), i.price, i.off])]), state.s]);
   let saved = snapshot();
@@ -429,7 +443,31 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--brand); out
 
   // ================================================================ ⚙️ SOZLAMALAR
   function renderSet() {
+    const open = state.s.op;
     $('#p-set').innerHTML = `
+      <div class="box">
+        <h2>Buyurtma qabul qilish</h2>
+        <button type="button" class="bigtoggle${open ? '' : ' is-off'}" id="s-op" aria-pressed="${open}">
+          <span><b>${open ? '🟢 Buyurtmalar qabul qilinmoqda' : "⏸ Qabul to'xtatilgan"}</b>
+            <small>${open ? "Bosing — vaqtincha to'xtatish (oshxona band, tugadi va h.k.)" : "Mijozlar menyuni ko'radi, lekin buyurtma bera olmaydi. Bosing — qayta ochish"}</small></span>
+          <span class="sw"></span>
+        </button>
+      </div>
+      <div class="box">
+        <h2>Yetkazib berish</h2>
+        <div class="duo">
+          <div class="field"><label for="s-df">Narxi (so'm)</label><input id="s-df" inputmode="numeric" maxlength="7" value="${esc(state.s.df)}" placeholder="0 — bepul"></div>
+          <div class="field"><label for="s-ff">Shundan oshsa bepul</label><input id="s-ff" inputmode="numeric" maxlength="9" value="${esc(state.s.ff)}" placeholder="0 — yo'q"></div>
+        </div>
+        <div class="preview" id="s-dprev"></div>
+      </div>
+      <div class="box">
+        <h2>Kafe ma'lumotlari</h2>
+        <div class="field"><label for="s-n">Nomi</label><input id="s-n" maxlength="40" value="${esc(state.s.n)}"></div>
+        <div class="field"><label for="s-ph">Telefon raqamlar <span class="hint">(har biri alohida qatorda, 3 tagacha)</span></label>
+          <textarea id="s-ph" rows="2" maxlength="70">${esc(state.s.ph)}</textarea></div>
+        <div class="field"><label for="s-h">Ish vaqti</label><input id="s-h" maxlength="40" value="${esc(state.s.h)}"></div>
+      </div>
       <div class="box">
         <h2>Kun taomi chegirmasi</h2>
         <div class="duo">
@@ -439,27 +477,49 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--brand); out
         <div class="preview" id="s-prev"></div>
       </div>
       <div class="box">
-        <h2>Yetkazib berish va ish vaqti</h2>
-        <div class="field"><label for="s-dl">Yetkazib berish matni</label><input id="s-dl" maxlength="60" value="${esc(state.s.dl)}"><span class="help">Mijoz menyuda va savatda shu matnni ko'radi</span></div>
-        <div class="field"><label for="s-h">Ish vaqti</label><input id="s-h" maxlength="40" value="${esc(state.s.h)}"></div>
-      </div>
-      <div class="box">
         <h2>Bildirishnoma</h2>
         <div class="field"><label for="s-ne">Ovozli eslatma — har nechta yangi buyurtmada</label><input id="s-ne" inputmode="numeric" maxlength="2" value="${esc(state.s.ne)}">
           <span class="help" id="s-ne-help"></span></div>
-      </div>`;
+      </div>
+      <div class="box">
+        <h2>Bot profili <small>Telegram'da</small></h2>
+        <div class="field"><label for="s-ab">About — qisqa tavsif <span class="hint" id="c-ab"></span></label>
+          <textarea id="s-ab" rows="2" maxlength="120">${esc(state.s.ab)}</textarea></div>
+        <div class="field"><label for="s-ds">Description — botni ochganda chiqadigan matn <span class="hint" id="c-ds"></span></label>
+          <textarea id="s-ds" rows="8" maxlength="512">${esc(state.s.ds)}</textarea>
+          <span class="help">Saqlanganda bot bu matnlarni Telegram'dagi profiliga o'zi qo'yadi — BotFather kerak emas.</span></div>
+      </div>
+      <p class="note" style="text-align:center">🔐 Bot tokeni va admin kodi xavfsizlik uchun faqat <b>config.php</b> faylida o'zgartiriladi.</p>`;
     prev();
+  }
+  function counters() {
+    const a = $('#c-ab'), d = $('#c-ds');
+    if (a) a.textContent = `${[...state.s.ab].length}/120`;
+    if (d) d.textContent = `${[...state.s.ds].length}/512`;
+  }
+  function dPrev() {
+    const el = $('#s-dprev'); if (!el) return;
+    const df = +state.s.df || 0, ff = +state.s.ff || 0;
+    el.innerHTML = df > 0
+      ? `Mijoz ko'radi: 🚚 Yetkazib berish <b>${money(df)}</b>${ff > 0 ? `, buyurtma <b>${money(ff)}</b> dan oshsa — <b>bepul</b>` : ''}. Savatdagi jami summaga qo'shiladi.`
+      : `Mijoz ko'radi: 🚚 Yetkazib berish <b>bepul</b>`;
   }
   function neHelp() {
     const n = +state.s.ne || 1, el = $('#s-ne-help');
     if (el) el.textContent = n > 1 ? `Buyurtmalar ovozsiz keladi, har ${n} ta yangi buyurtma yig'ilganda telefon jiringlaydi.` : 'Har bir buyurtma ovozli keladi.';
   }
-  function prev() { neHelp(); $('#s-prev').innerHTML = `Mijoz ko'radi: 🔥 <b>${esc(state.s.bm || '?')} ta</b> va undan ko'p olsangiz — har biri <b>${money(+state.s.bp || 0)}</b>`; }
+  function prev() { neHelp(); dPrev(); counters(); $('#s-prev').innerHTML = `Mijoz ko'radi: 🔥 <b>${esc(state.s.bm || '?')} ta</b> va undan ko'p olsangiz — har biri <b>${money(+state.s.bp || 0)}</b>`; }
   $('#p-set').addEventListener('input', (e) => {
-    const t = e.target, k = { 's-bm': 'bm', 's-bp': 'bp', 's-dl': 'dl', 's-h': 'h', 's-ne': 'ne' }[t.id];
+    const t = e.target, k = { 's-bm': 'bm', 's-bp': 'bp', 's-h': 'h', 's-ne': 'ne', 's-df': 'df', 's-ff': 'ff', 's-n': 'n', 's-ph': 'ph', 's-ab': 'ab', 's-ds': 'ds' }[t.id];
     if (!k) return;
-    if (k === 'bm' || k === 'bp' || k === 'ne') t.value = t.value.replace(/\D/g, '');
+    if (['bm', 'bp', 'ne', 'df', 'ff'].includes(k)) t.value = t.value.replace(/\D/g, '');
     state.s[k] = t.value; prev(); changed();
+  });
+  $('#p-set').addEventListener('click', (e) => {
+    if (!e.target.closest('#s-op')) return;
+    state.s.op = !state.s.op; haptic();
+    toast(state.s.op ? '🟢 Saqlang — buyurtmalar qayta ochiladi' : "⏸ Saqlang — buyurtma qabul qilish to'xtaydi");
+    renderSet(); changed();
   });
 
   // ================================================================ tablar
@@ -531,7 +591,9 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--brand); out
       type: 'admin', v: 1,
       t: [state.todayTitle, pack(today.items)],
       c: state.cats.filter(c => !c.daily).map(c => [c.id, c.title.trim(), pack(c.items)]),
-      s: { bm: +state.s.bm, bp: +state.s.bp || 0, dl: state.s.dl.trim(), h: state.s.h.trim(), ne: Math.max(1, +state.s.ne || 1) },
+      s: { bm: +state.s.bm, bp: +state.s.bp || 0, h: state.s.h.trim(), ne: Math.max(1, +state.s.ne || 1),
+           df: +state.s.df || 0, ff: +state.s.ff || 0, op: state.s.op ? 1 : 0, n: state.s.n.trim(),
+           ph: state.s.ph.split('\n').map(x => x.trim()).filter(Boolean).slice(0, 3), ab: state.s.ab.trim(), ds: state.s.ds.trim() },
     };
     if (photoFor) payload.photo = photoFor;
     const json = JSON.stringify(payload);

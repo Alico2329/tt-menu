@@ -129,6 +129,7 @@ button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px
 .sale-tag { position: absolute; right: 10px; top: 10px; z-index: 2; padding: 5px 9px; border-radius: 999px; background: var(--brand); color: #fff; font-size: 12px; font-weight: 800; box-shadow: 0 4px 12px -4px rgba(0,0,0,.4); }
 .badge { z-index: 2; }
 .line .sale-tag { display: none; }
+.closed p { margin: 12px 0 0; padding: 12px 14px; border-radius: 16px; background: color-mix(in srgb, var(--danger) 12%, var(--card)); color: var(--ink); font-size: 14px; }
 .credits { margin: 22px 0 6px; text-align: center; font-size: 11.5px; color: var(--hint); }
 .pic .emo { font-size: 54px; line-height: 1; filter: drop-shadow(0 10px 12px rgba(0,0,0,.22)); transform: rotate(-6deg); }
 
@@ -277,7 +278,7 @@ button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px
   // ================================================================ menyu: bot uni URL orqali yuboradi (?m=...)
   // Har bir taom: [id, nom, narx, rasm (ixtiyoriy), eski_narx (ixtiyoriy)]
   const DEMO = {
-    n: 'Tezkor Taom Namangan', dl: "shahar bo'ylab bepul", h: '08:00 – 00:00', b: [3, 35000],
+    n: 'Tezkor Taom Namangan', dl: "10 000 so'm", df: 10000, ff: 0, op: 1, ph: ['+998 33 675 55 50'], h: '08:00 – 00:00', b: [3, 35000],
     t: ['Bugungi menyu', [['d0_1', 'Set taom: Tovuq say', 40000, 'img/tovuq-say.jpg']]],
     c: [
       ["⚖️ Kilo bo'yicha", [['osh_kg', 'Osh (1 kg)', 40000, 'img/osh.jpg'], ['kfc_kg', 'KFC (1 kg)', 90000, 'img/kfc.jpg'], ['norin_kg', 'Norin (1 kg)', 90000, 'img/norin.jpg']]],
@@ -303,6 +304,9 @@ button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px
   }
   const M = readMenu();
   const [BULK_MIN, BULK_PRICE] = M.b || [3, 35000];
+  const FEE = +M.df || 0;          // yetkazib berish narxi
+  const FREE_FROM = +M.ff || 0;    // shu summadan oshsa bepul (0 — hech qachon)
+  const OPEN = M.op === undefined ? true : !!M.op;
   const HUES = [22, 2, 268, 195, 140, 45, 320];
   const sections = [];
   if (M.t && M.t[1] && M.t[1].length) sections.push({ title: M.t[0] || 'Bugungi menyu', chip: '🍛 Kun taomi', daily: true, items: M.t[1] });
@@ -340,7 +344,8 @@ button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px
       r.unit = bulk && r.it.daily ? Math.min(r.it.price, BULK_PRICE) : r.it.price;
       r.sum = r.unit * r.q; total += r.sum; full += r.it.price * r.q; count += r.q;
     }
-    return { rows, total, count, bulk, dailyQty, saved: full - total };
+    const delivery = (rows.length && FEE > 0 && !(FREE_FROM > 0 && total >= FREE_FROM)) ? FEE : 0;
+    return { rows, subtotal: total, delivery, total: total + delivery, count, bulk, dailyQty, saved: full - total };
   }
   function change(id, d) {
     const q = Math.max(0, Math.min(50, (cart[id] || 0) + d));
@@ -369,7 +374,14 @@ button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px
   const initials = (M.n || 'TT').split(/\s+/).slice(0, 2).map(w => w[0]).join('').toUpperCase();
   $('#logo').textContent = initials;
   $('#cafe').textContent = (M.n || 'Tezkor Taom').replace(/\s+Namangan$/i, '');
-  $('#facts').innerHTML = [`🚚 Yetkazish ${esc(M.dl || 'bepul')}`, M.h ? `⏰ ${esc(M.h)}` : '', '📍 Namangan'].filter(Boolean).map(f => `<span class="fact">${f}</span>`).join('');
+  const feeFact = FEE > 0 ? `🚚 Yetkazish ${num(FEE)} so'm${FREE_FROM > 0 ? ` · ${num(FREE_FROM)} dan bepul` : ''}` : '🚚 Yetkazish bepul';
+  $('#facts').innerHTML = [OPEN ? '' : '⏸ Hozir yopiq', feeFact, M.h ? `⏰ ${esc(M.h)}` : '', '📍 Namangan'].filter(Boolean).map(f => `<span class="fact">${f}</span>`).join('');
+  if (!OPEN) {
+    const b = document.createElement('div');
+    b.className = 'closed gut';
+    b.innerHTML = `<p>⏸ <b>Hozir buyurtma qabul qilinmayapti.</b> Menyuni ko'rishingiz mumkin.${M.h ? `<br>Ish vaqti: ${esc(M.h)}` : ''}</p>`;
+    $('.searchbox').after(b);
+  }
   $('#chips').innerHTML = sections.map((s, i) => `<button class="chip${i ? '' : ' on'}" type="button" data-sec="${i}">${esc(s.chip)}</button>`).join('');
 
   let query = '';
@@ -425,11 +437,12 @@ button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px
       ${c.dailyQty ? `<div style="margin-top:12px">${dealHtml(c)}</div>` : ''}
       <div class="box">
         <div class="sum">
-          <div><span class="hint">Taomlar (${c.count} ta)</span><span>${money(c.total + c.saved)}</span></div>
+          <div><span class="hint">Taomlar (${c.count} ta)</span><span>${money(c.subtotal + c.saved)}</span></div>
           ${c.saved ? `<div><span class="hint">Chegirma</span><span class="free">−${money(c.saved)}</span></div>` : ''}
-          <div><span class="hint">Yetkazib berish</span><span class="free">${esc(M.dl || 'bepul')}</span></div>
+          <div><span class="hint">Yetkazib berish</span>${c.delivery ? `<span>${money(c.delivery)}</span>` : `<span class="free">bepul</span>`}</div>
           <div class="total"><span>Jami</span><span>${money(c.total)}</span></div>
         </div>
+        ${c.delivery && FREE_FROM > 0 ? `<div class="deal" style="margin:0 0 14px"><p>🚚 Yana <b>${money(FREE_FROM - c.subtotal)}</b> lik taom qo'shsangiz — yetkazib berish bepul</p><div class="bar"><i style="width:${Math.min(100, c.subtotal / FREE_FROM * 100)}%"></i></div></div>` : ''}
       </div>
       <div class="box">
         <h3>Yetkazib berish ma'lumotlari</h3>
@@ -479,7 +492,7 @@ button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px
   function mainButton(c) {
     let text = null;
     if (view === 'menu' && c.count) text = `Savatga o'tish · ${c.count} ta · ${money(c.total)}`;
-    if (view === 'cart' && c.count) text = `Buyurtma berish · ${money(c.total)}`;
+    if (view === 'cart' && c.count) text = OPEN ? `Buyurtma berish · ${money(c.total)}` : '⏸ Hozir buyurtma qabul qilinmayapti';
     if (inTg) {
       if (text) tg.MainButton.setParams({ text, is_visible: true, is_active: true }); else tg.MainButton.hide();
       if (view === 'cart') tg.BackButton.show(); else tg.BackButton.hide();
@@ -495,6 +508,11 @@ button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px
   function submit() {
     const c = calc();
     if (!c.count) return;
+    if (!OPEN) {
+      haptic('error');
+      const m = `Hozir buyurtma qabul qilinmayapti.\nIsh vaqti: ${M.h || ''}${M.ph && M.ph.length ? '\nTelefon: ' + M.ph.join(', ') : ''}`;
+      return inTg ? tg.showAlert(m) : alert(m);
+    }
     const phone = $('#phone').value.trim();
     const address = $('#address').value.trim();
     const badPhone = phone.replace(/\D/g, '').length < 9;
