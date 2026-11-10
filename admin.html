@@ -1,0 +1,562 @@
+<!doctype html>
+<html lang="uz">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<title>Tezkor Taom — Admin panel</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700;800&family=Unbounded:wght@600;700&display=swap">
+<style>
+:root {
+  --tg-theme-bg-color: #FFFFFF;
+  --tg-theme-secondary-bg-color: #F2F1EE;
+  --tg-theme-text-color: #191714;
+  --tg-theme-hint-color: #868079;
+  --tg-theme-button-color: #E2531F;
+  --tg-theme-button-text-color: #FFFFFF;
+  --brand: #E2531F;
+  --brand-soft: color-mix(in srgb, var(--brand) 12%, var(--tg-theme-bg-color));
+  --card: var(--tg-theme-bg-color);
+  --page: var(--tg-theme-secondary-bg-color);
+  --ink: var(--tg-theme-text-color);
+  --hint: var(--tg-theme-hint-color);
+  --line: color-mix(in srgb, var(--tg-theme-hint-color) 20%, transparent);
+  --ok: #1F9D57;
+  --warn: #C98A0B;
+  --danger: #D93636;
+  --info: #2F6FDB;
+  --shadow: 0 1px 2px rgba(26, 18, 10, .05), 0 8px 24px -14px rgba(26, 18, 10, .2);
+  --f-display: 'Unbounded', 'Arial Black', system-ui, sans-serif;
+  --f-ui: 'Onest', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --tg-theme-bg-color: #1A1A1C;
+    --tg-theme-secondary-bg-color: #0F0F10;
+    --tg-theme-text-color: #F2EFEA;
+    --tg-theme-hint-color: #938D86;
+    --tg-theme-button-color: #FF6A2B;
+    --tg-theme-button-text-color: #FFFFFF;
+    --brand: #FF6A2B;
+    --ok: #4ED48A; --warn: #F2B544; --danger: #FF6464; --info: #6EA2FF;
+    --shadow: 0 8px 24px -14px rgba(0, 0, 0, .7);
+    color-scheme: dark;
+  }
+}
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body { margin: 0; }
+body { background: var(--page); color: var(--ink); font: 15px/1.4 var(--f-ui); -webkit-font-smoothing: antialiased; padding-bottom: calc(28px + env(safe-area-inset-bottom, 0px)); }
+body.browser { padding-bottom: calc(100px + env(safe-area-inset-bottom, 0px)); }
+button { font: inherit; color: inherit; cursor: pointer; border: 0; background: none; padding: 0; }
+button:focus-visible, input:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+[hidden] { display: none !important; }
+.hint { color: var(--hint); }
+.gut { padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+
+/* header */
+.head { background: var(--card); padding-block: 16px 0; }
+.who { display: flex; align-items: center; gap: 12px; }
+.logo { width: 44px; height: 44px; border-radius: 14px; display: grid; place-items: center; flex: none; background: var(--ink); color: var(--card); font: 700 15px/1 var(--f-display); }
+.who h1 { margin: 0; font: 700 18px/1.15 var(--f-display); letter-spacing: -.02em; }
+.who p { margin: 3px 0 0; font-size: 13px; color: var(--hint); }
+.live { display: inline-flex; align-items: center; gap: 6px; }
+.live::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--ok); }
+.tabs { display: flex; gap: 4px; margin-top: 14px; }
+.tab { flex: 1; padding: 12px 6px 11px; font-weight: 600; font-size: 14px; color: var(--hint); border-bottom: 2.5px solid transparent; }
+.tab[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--brand); }
+.tabs-wrap { position: sticky; top: 0; z-index: 5; background: var(--card); border-bottom: 1px solid var(--line); }
+
+.pane { padding-block: 14px 8px; display: grid; gap: 12px; }
+.box { background: var(--card); border-radius: 20px; box-shadow: var(--shadow); padding: 16px; min-width: 0; }
+.box h2 { margin: 0 0 12px; font-size: 15px; font-weight: 700; display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.box h2 small { font-weight: 500; font-size: 12.5px; color: var(--hint); }
+
+/* KPI */
+.kpis { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.kpi { background: var(--card); border-radius: 20px; box-shadow: var(--shadow); padding: 14px 16px; min-width: 0; }
+.kpi.wide { grid-column: 1 / -1; background: linear-gradient(140deg, var(--brand), color-mix(in srgb, var(--brand) 65%, #3B1004)); color: #fff; }
+.kpi .lbl { font-size: 12.5px; font-weight: 600; color: var(--hint); text-transform: uppercase; letter-spacing: .05em; }
+.kpi.wide .lbl { color: rgba(255,255,255,.8); }
+.kpi .val { margin-top: 6px; font: 700 24px/1.1 var(--f-display); letter-spacing: -.02em; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.kpi.wide .val { font-size: 30px; }
+.kpi .sub { margin-top: 4px; font-size: 12.5px; color: var(--hint); }
+.kpi.wide .sub { color: rgba(255,255,255,.8); }
+
+/* top dishes */
+.bars { display: grid; gap: 10px; }
+.barrow { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 10px; align-items: center; font-size: 14px; }
+.barrow .track { grid-column: 1 / -1; height: 8px; border-radius: 99px; background: var(--page); overflow: hidden; }
+.barrow .track i { display: block; height: 100%; border-radius: inherit; background: var(--brand); }
+.barrow b { font-variant-numeric: tabular-nums; }
+
+/* orders */
+.order { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 4px 12px; padding: 11px 0; align-items: center; }
+.order + .order { border-top: 1px solid var(--line); }
+.order .no { font-weight: 800; font-variant-numeric: tabular-nums; }
+.order .what { font-size: 13.5px; color: var(--hint); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.order .sum { font-weight: 700; font-variant-numeric: tabular-nums; text-align: right; }
+.order .meta { grid-column: 2 / -1; display: flex; gap: 8px; align-items: center; font-size: 12.5px; color: var(--hint); }
+.pill { display: inline-flex; align-items: center; gap: 5px; padding: 3px 9px; border-radius: 999px; font-size: 12px; font-weight: 700; }
+.pill::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+.s-new { color: var(--info); background: color-mix(in srgb, var(--info) 14%, transparent); }
+.s-accepted { color: var(--warn); background: color-mix(in srgb, var(--warn) 16%, transparent); }
+.s-onway { color: var(--brand); background: color-mix(in srgb, var(--brand) 14%, transparent); }
+.s-done { color: var(--ok); background: color-mix(in srgb, var(--ok) 14%, transparent); }
+.s-cancel { color: var(--hint); background: color-mix(in srgb, var(--hint) 14%, transparent); }
+.empty { text-align: center; padding: 20px 8px; color: var(--hint); font-size: 14px; }
+.note { font-size: 12.5px; color: var(--hint); margin: 10px 0 0; }
+
+/* menu editor */
+.search { display: flex; gap: 10px; align-items: center; background: var(--card); border-radius: 16px; padding: 0 14px; box-shadow: var(--shadow); }
+.search input { flex: 1; min-width: 0; border: 0; background: transparent; color: var(--ink); font: inherit; padding: 13px 0; outline: none; }
+.filters { display: flex; gap: 8px; flex-wrap: wrap; }
+.fchip { padding: 8px 13px; border-radius: 999px; background: var(--card); font-weight: 600; font-size: 13.5px; box-shadow: 0 0 0 1px var(--line) inset; }
+.fchip[aria-pressed="true"] { background: var(--ink); color: var(--card); box-shadow: none; }
+.cat-title { display: flex; gap: 8px; align-items: center; margin-bottom: 6px; }
+.cat-title input { flex: 1; min-width: 0; font-weight: 700; font-size: 15px; border: 0; border-bottom: 1.5px dashed transparent; background: transparent; color: var(--ink); padding: 4px 0; }
+.cat-title input:focus { border-bottom-color: var(--brand); outline: none; }
+.cat-title .count { font-size: 12.5px; color: var(--hint); white-space: nowrap; }
+.item { display: grid; grid-template-columns: 76px minmax(0, 1fr) auto; gap: 8px 12px; padding: 12px 0; align-items: center; }
+.thumb { grid-row: 1 / span 2; position: relative; width: 76px; height: 76px; border-radius: 14px; overflow: hidden; background: var(--page); display: grid; place-items: center; align-content: center; gap: 2px; }
+.thumb img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.thumb .cam { position: relative; z-index: 1; font-size: 20px; line-height: 1; }
+.thumb .lbl { position: relative; z-index: 1; font-size: 10.5px; font-weight: 700; color: var(--hint); }
+.thumb:not(.none) .cam { position: absolute; right: 5px; bottom: 5px; width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; font-size: 13px; background: rgba(0,0,0,.55); }
+.thumb:not(.none) .lbl { display: none; }
+.thumb.none { border: 1.5px dashed color-mix(in srgb, var(--brand) 50%, transparent); }
+.thumb.none .lbl { color: var(--brand); }
+.item.off .thumb img { filter: grayscale(1); opacity: .6; }
+.item .priceline { grid-column: 2; }
+.item + .item { border-top: 1px solid var(--line); }
+.item.off .name, .item.off .price { opacity: .5; }
+.item .name { width: 100%; border: 0; background: transparent; color: var(--ink); font: inherit; font-weight: 600; padding: 2px 0; border-bottom: 1.5px dashed transparent; }
+.item .priceline { display: flex; align-items: center; gap: 6px; }
+.item .price { width: 110px; max-width: 100%; border: 1.5px solid var(--line); background: var(--page); color: var(--ink); font: inherit; font-weight: 700; font-variant-numeric: tabular-nums; padding: 7px 10px; border-radius: 10px; }
+.item .name:focus { border-bottom-color: var(--brand); outline: none; }
+.item .price:focus { border-color: var(--brand); outline: none; }
+.item .bad { border-color: var(--danger) !important; }
+.item .acts { grid-row: 1 / span 2; grid-column: 3; display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
+.toggle { display: inline-flex; align-items: center; gap: 8px; font-size: 12.5px; font-weight: 700; }
+.toggle .sw { width: 40px; height: 24px; border-radius: 99px; background: var(--ok); position: relative; transition: background .2s; flex: none; }
+.toggle .sw::after { content: ""; position: absolute; top: 3px; left: 19px; width: 18px; height: 18px; border-radius: 50%; background: #fff; transition: left .2s; box-shadow: 0 1px 3px rgba(0,0,0,.25); }
+.toggle.is-off .sw { background: color-mix(in srgb, var(--hint) 45%, transparent); }
+.toggle.is-off .sw::after { left: 3px; }
+.toggle .st { color: var(--ok); min-width: 46px; text-align: right; }
+.toggle.is-off .st { color: var(--danger); }
+.del { font-size: 12.5px; color: var(--hint); font-weight: 600; padding: 2px 0; }
+.del:hover { color: var(--danger); }
+.addrow { display: flex; gap: 8px; margin-top: 8px; }
+.addbtn { flex: 1; padding: 11px; border-radius: 12px; border: 1.5px dashed color-mix(in srgb, var(--brand) 55%, transparent); color: var(--brand); font-weight: 700; font-size: 14px; }
+.newcat { width: 100%; padding: 14px; border-radius: 16px; border: 1.5px dashed var(--line); color: var(--hint); font-weight: 700; background: transparent; }
+.delcat { font-size: 12.5px; color: var(--hint); font-weight: 600; }
+
+/* settings */
+.field { display: grid; gap: 6px; margin-bottom: 14px; }
+.field:last-child { margin-bottom: 0; }
+.field label { font-size: 13px; font-weight: 600; color: var(--hint); }
+.field input { width: 100%; border: 1.5px solid transparent; border-radius: 12px; padding: 12px 14px; font: inherit; font-size: 15.5px; color: var(--ink); background: var(--page); }
+.field input:focus { border-color: var(--brand); outline: none; }
+.field .help { font-size: 12.5px; color: var(--hint); }
+.duo { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.preview { padding: 12px 14px; border-radius: 14px; background: var(--brand-soft); font-size: 13.5px; }
+.preview b { color: var(--brand); }
+
+/* save bar (brauzerda) */
+.fake-main { position: fixed; left: 0; right: 0; bottom: 0; z-index: 10; padding: 10px max(16px, env(safe-area-inset-right, 0px)) calc(12px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px)); background: color-mix(in srgb, var(--card) 92%, transparent); backdrop-filter: blur(12px); border-top: 1px solid var(--line); }
+.fake-main button { width: 100%; padding: 15px; border-radius: 16px; background: var(--tg-theme-button-color); color: var(--tg-theme-button-text-color); font-weight: 700; font-size: 15.5px; }
+.modal { position: fixed; inset: 0; z-index: 20; display: grid; place-items: end center; background: rgba(0,0,0,.45); }
+.modal > div { width: min(480px, 100%); max-height: 85vh; overflow: auto; background: var(--card); border-radius: 24px 24px 0 0; padding: 22px 20px calc(20px + env(safe-area-inset-bottom, 0px)); }
+.modal h3 { margin: 0 0 6px; font: 700 18px/1.2 var(--f-display); }
+.modal pre { white-space: pre-wrap; font: 13px/1.5 var(--f-ui); background: var(--page); padding: 12px; border-radius: 12px; }
+.modal button { width: 100%; padding: 13px; border-radius: 14px; background: var(--brand); color: #fff; font-weight: 700; }
+.toast { position: fixed; left: 50%; top: 14px; transform: translateX(-50%); z-index: 30; background: var(--ink); color: var(--card); padding: 10px 16px; border-radius: 12px; font-size: 14px; font-weight: 600; opacity: 0; pointer-events: none; transition: opacity .2s; max-width: calc(100% - 32px); text-align: center; }
+.toast.show { opacity: .95; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+
+<div class="tabs-wrap">
+  <header class="head gut">
+    <div class="who">
+      <div class="logo" id="logo">TT</div>
+      <div><h1 id="cafe">Tezkor Taom</h1><p><span class="live" id="at">Admin panel</span></p></div>
+    </div>
+    <nav class="tabs" role="tablist">
+      <button class="tab" role="tab" id="t-stats" aria-selected="true" data-tab="stats">📊 Bugun</button>
+      <button class="tab" role="tab" id="t-menu" aria-selected="false" data-tab="menu">🍽 Menyu</button>
+      <button class="tab" role="tab" id="t-set" aria-selected="false" data-tab="set">⚙️ Sozlamalar</button>
+    </nav>
+  </header>
+</div>
+
+<section class="pane gut" id="p-stats" role="tabpanel" aria-labelledby="t-stats"></section>
+<section class="pane gut" id="p-menu" role="tabpanel" aria-labelledby="t-menu" hidden></section>
+<section class="pane gut" id="p-set" role="tabpanel" aria-labelledby="t-set" hidden></section>
+
+<div class="fake-main" id="fake-main" hidden><button type="button" id="fake-btn"></button></div>
+<div class="modal" id="modal" hidden><div>
+  <h3>Saqlashga tayyor ✅</h3>
+  <p class="hint">Telegram ichida bu ma'lumot botga yuboriladi va bot menyuni darhol yangilaydi. Brauzerda esa faqat ko'rsatiladi:</p>
+  <pre id="modal-pre"></pre>
+  <button type="button" id="modal-close">Yopish</button>
+</div></div>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+(() => {
+  const tg = window.Telegram && window.Telegram.WebApp;
+  const inTg = !!(tg && tg.initData);
+  if (tg) { tg.ready(); tg.expand(); try { tg.setHeaderColor && tg.setHeaderColor('bg_color'); } catch (e) {} }
+  const haptic = (t) => { try { if (!tg || !tg.HapticFeedback) return; (t === 'error' || t === 'success') ? tg.HapticFeedback.notificationOccurred(t) : tg.HapticFeedback.selectionChanged(); } catch (e) {} };
+
+  // ================================================================ ma'lumot (bot URL orqali yuboradi: ?a=...)
+  const DEMO = {
+    n: 'Tezkor Taom Namangan', at: '14:32',
+    s: { bm: 3, bp: 35000, dl: "shahar bo'ylab bepul", h: '08:00 – 00:00' },
+    t: ['Bugungi menyu', [['d0_1', 'Set taom: Tovuq say', 40000, 0, 'img/tovuq-say.jpg']]],
+    c: [
+      ['kg', "⚖️ Kilo bo'yicha", [['osh_kg', 'Osh (1 kg)', 40000, 0, 'img/osh.jpg'], ['kfc_kg', 'KFC (1 kg)', 90000, 0, 'img/kfc.jpg'], ['norin_kg', 'Norin (1 kg)', 90000, 1, 'img/norin.jpg']]],
+      ['fast', '🌯 Fast food', [['lavash', 'Lavash', 15000, 0, 'img/lavash.jpg'], ['shaurma', 'Shaurma (yangi)', 25000, 0]]],
+      ['sets', '🎁 Kombo setlar', [['kombo7', 'Kombo 7 (4 kishilik)', 135000, 0, 'img/kombo-7.jpg'], ['burgerlan', 'Burgerlan kombo: 5 ta burger + Cola 1.5 l', 119000, 0, 'img/burgerlan.jpg'], ['damas', 'Damas: 5 ta tovuqli lavash + Cola 1.5 l', 99000, 0, 'img/damas.jpg'], ['hotdog4', 'Hot-dog kombo: 4 ta hot-dog + Cola', 49900, 0, 'img/hotdog.jpg']]],
+    ],
+    st: [14, 1, 1356800, 4.7, 9, [['Set taom: Tovuq say', 21], ['Lavash', 12], ['Osh (1 kg)', 6], ['Kombo 7 (4 kishilik)', 3], ['Damas: 5 ta tovuqli lavash + Cola 1.5 l', 2]]],
+    o: [
+      [14, 'new', 120000, '14:28', 'Set taom: Tovuq say ×3, Lavash ×1', null],
+      [13, 'onway', 119000, '14:10', 'Burgerlan kombo ×1', null],
+      [12, 'accepted', 80000, '13:55', 'Osh (1 kg) ×2', null],
+      [11, 'done', 135000, '13:20', 'Kombo 7 (4 kishilik) ×1', 5],
+      [10, 'cancel', 15000, '12:47', 'Lavash ×1', null],
+      [9, 'done', 140000, '12:31', 'Set taom: Tovuq say ×4', 4],
+    ],
+  };
+  const isDemo = !new URLSearchParams(location.search).get('a');
+  function readData() {
+    const p = new URLSearchParams(location.search).get('a');
+    if (!p) return DEMO;
+    try {
+      let b = p.replace(/-/g, '+').replace(/_/g, '/');
+      while (b.length % 4) b += '=';
+      const d = JSON.parse(new TextDecoder().decode(Uint8Array.from(atob(b), ch => ch.charCodeAt(0))));
+      if (!d || !Array.isArray(d.c)) throw 0;
+      return d;
+    } catch (e) { return DEMO; }
+  }
+  const D = readData();
+
+  // tahrirlanadigan holat
+  let uid = 0;
+  const nid = (p) => p + Date.now().toString(36).slice(-5) + (uid++);
+  const mkItem = ([id, name, price, off, img]) => ({ id, name, price: String(price), off: !!off, img: img || '' });
+  const state = {
+    todayTitle: D.t[0],
+    cats: [
+      { id: '__today', title: '🍛 Kun taomi', daily: true, items: D.t[1].map(mkItem) },
+      ...D.c.map(([id, title, items]) => ({ id, title, items: items.map(mkItem) })),
+    ],
+    s: { bm: String(D.s.bm), bp: String(D.s.bp), dl: D.s.dl, h: D.s.h },
+  };
+  const snapshot = () => JSON.stringify([state.cats.map(c => [c.id, c.title, c.items.map(i => [i.id, i.name.trim(), i.price, i.off])]), state.s]);
+  let saved = snapshot();
+
+  // ================================================================ yordamchilar
+  const $ = (s) => document.querySelector(s);
+  const esc = (s) => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const num = (n) => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+  const money = (n) => num(n) + " so'm";
+  const STATUS = { new: 'Yangi', accepted: 'Tayyorlanmoqda', onway: "Yo'lda", done: 'Yetkazildi', cancel: 'Bekor' };
+  let toastT = 0;
+  function toast(t) { const el = $('#toast'); el.textContent = t; el.classList.add('show'); clearTimeout(toastT); toastT = setTimeout(() => el.classList.remove('show'), 1800); }
+
+  $('#logo').textContent = (D.n || 'TT').split(/\s+/).slice(0, 2).map(w => w[0]).join('').toUpperCase();
+  $('#cafe').textContent = (D.n || 'Tezkor Taom').replace(/\s+Namangan$/i, '');
+  $('#at').textContent = isDemo ? 'Namuna ma\'lumot (brauzer)' : `Ma'lumot ${D.at} holatiga`;
+
+  // ================================================================ 📊 BUGUN
+  function renderStats() {
+    const [cnt, cancel, sum, avg, rated, top] = D.st;
+    const done = cnt - cancel;
+    const avgCheck = done ? Math.round(sum / done / 1000) * 1000 : 0;
+    const max = top.length ? top[0][1] : 1;
+    const active = D.o.filter(o => o[1] === 'new' || o[1] === 'accepted' || o[1] === 'onway').length;
+    $('#p-stats').innerHTML = `
+      <div class="kpis">
+        <div class="kpi wide"><div class="lbl">Bugungi tushum</div><div class="val">${money(sum)}</div><div class="sub">${done} ta buyurtmadan${cancel ? ` · ${cancel} ta bekor` : ''}</div></div>
+        <div class="kpi"><div class="lbl">Buyurtmalar</div><div class="val">${cnt}</div><div class="sub">${active ? `${active} tasi jarayonda` : 'Hammasi yopilgan'}</div></div>
+        <div class="kpi"><div class="lbl">O'rtacha chek</div><div class="val">${avgCheck ? num(avgCheck) : '—'}</div><div class="sub">so'm</div></div>
+        <div class="kpi"><div class="lbl">Mijoz bahosi</div><div class="val">${avg ? '⭐ ' + avg : '—'}</div><div class="sub">${rated ? `${rated} ta baho` : 'Hali baho yo\'q'}</div></div>
+        <div class="kpi"><div class="lbl">Stop-list</div><div class="val">${offCount()}</div><div class="sub">taom tugagan</div></div>
+      </div>
+      <div class="box">
+        <h2>Eng ko'p sotilgan <small>bugun</small></h2>
+        ${top.length ? `<div class="bars">${top.map(([n, q]) => `<div class="barrow"><span>${esc(n)}</span><b>${q} ta</b><div class="track"><i style="width:${Math.max(6, q / max * 100)}%"></i></div></div>`).join('')}</div>` : '<div class="empty">Bugun hali sotuv yo\'q</div>'}
+      </div>
+      <div class="box">
+        <h2>Oxirgi buyurtmalar <small>${D.o.length ? `oxirgi ${D.o.length} ta` : ''}</small></h2>
+        ${D.o.length ? D.o.map(([id, st, total, time, what, rating]) => `
+          <div class="order">
+            <span class="no">#${id}</span>
+            <span class="what">${esc(what)}</span>
+            <span class="sum">${num(total)}</span>
+            <div class="meta"><span class="pill s-${esc(st)}">${STATUS[st] || esc(st)}</span><span>${esc(time)}</span>${rating ? `<span>${'⭐'.repeat(rating)}</span>` : ''}</div>
+          </div>`).join('') : '<div class="empty">Bugun hali buyurtma yo\'q</div>'}
+        <p class="note">Buyurtma holatini chatdagi tugmalar orqali o'zgartirasiz: ✅ Qabul qilish → 🚚 Yo'lga chiqdi → 📦 Yetkazildi.</p>
+      </div>`;
+  }
+  const offCount = () => state.cats.reduce((n, c) => n + c.items.filter(i => i.off).length, 0);
+
+  // ================================================================ 🍽 MENYU
+  let mq = '';
+  let mfilter = 'all';
+  function itemHtml(c, i) {
+    const badPrice = !(+i.price > 0);
+    const badName = !i.name.trim();
+    return `<div class="item${i.off ? ' off' : ''}" data-c="${c.id}" data-i="${i.id}">
+      <button type="button" class="thumb${i.img ? '' : ' none'}" data-act="photo" aria-label="${i.img ? 'Rasmni o\'zgartirish' : 'Rasm qo\'yish'}">
+        ${i.img ? `<img src="${esc(i.img)}" alt="" loading="lazy" onerror="this.parentNode.classList.add('none');this.remove()">` : ''}
+        <span class="cam">📷</span><span class="lbl">${i.img ? 'Almashtirish' : 'Rasm qo\'yish'}</span>
+      </button>
+      <input class="name${badName ? ' bad' : ''}" value="${esc(i.name)}" placeholder="Taom nomi" aria-label="Taom nomi" data-f="name" maxlength="60">
+      <div class="priceline"><input class="price${badPrice ? ' bad' : ''}" value="${esc(i.price)}" inputmode="numeric" aria-label="Narx" data-f="price" maxlength="8"><span class="hint">so'm</span></div>
+      <div class="acts">
+        <button type="button" class="toggle${i.off ? ' is-off' : ''}" data-act="toggle" aria-pressed="${!i.off}" aria-label="Mavjudlik"><span class="st">${i.off ? 'Tugadi' : 'Bor'}</span><span class="sw"></span></button>
+        <button type="button" class="del" data-act="del">O'chirish</button>
+      </div>
+    </div>`;
+  }
+  function renderMenu() {
+    const q = mq.toLowerCase();
+    const total = state.cats.reduce((n, c) => n + c.items.length, 0);
+    const off = offCount();
+    let html = `
+      <label class="search"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        <input id="mq" type="search" placeholder="Taom qidirish…" value="${esc(mq)}" aria-label="Taom qidirish" autocomplete="off"></label>
+      <div class="filters">
+        <button type="button" class="fchip" data-filter="all" aria-pressed="${mfilter === 'all'}">Hammasi · ${total}</button>
+        <button type="button" class="fchip" data-filter="off" aria-pressed="${mfilter === 'off'}">⛔ Tugagan · ${off}</button>
+      </div>`;
+    for (const c of state.cats) {
+      const items = c.items.filter(i => (!q || i.name.toLowerCase().includes(q)) && (mfilter !== 'off' || i.off));
+      if ((q || mfilter === 'off') && !items.length) continue;
+      html += `<div class="box" data-c="${c.id}">
+        <div class="cat-title">
+          ${c.daily ? `<h2 style="margin:0;flex:1">🍛 Kun taomi</h2>` : `<input value="${esc(c.title)}" aria-label="Bo'lim nomi" data-cat="title" maxlength="40">`}
+          <span class="count">${c.items.length} ta</span>
+        </div>
+        ${c.daily ? `<p class="note" style="margin:0 0 4px">Har kuni o'zgaradigan taomlar. ${state.s.bm} ta va ko'p olinsa — har biri ${money(+state.s.bp || 0)}.</p>` : ''}
+        ${items.map(i => itemHtml(c, i)).join('') || '<div class="empty">Bu bo\'limda taom yo\'q</div>'}
+        ${!q && mfilter === 'all' ? `<div class="addrow"><button type="button" class="addbtn" data-act="add">+ Taom qo'shish</button></div>
+          ${!c.daily ? `<div style="text-align:right;margin-top:10px"><button type="button" class="delcat" data-act="delcat">Bo'limni o'chirish</button></div>` : ''}` : ''}
+      </div>`;
+    }
+    if (!q && mfilter === 'all') html += `<button type="button" class="newcat" data-act="newcat">+ Yangi bo'lim qo'shish</button>`;
+    else if (!html.includes('class="box"')) html += `<div class="empty">Hech narsa topilmadi</div>`;
+    const pane = $('#p-menu');
+    const focusId = document.activeElement && document.activeElement.id;
+    pane.innerHTML = html;
+    if (focusId === 'mq') { const el = $('#mq'); el.focus(); el.setSelectionRange(el.value.length, el.value.length); }
+  }
+
+  const findCat = (id) => state.cats.find(c => c.id === id);
+  $('#p-menu').addEventListener('input', (e) => {
+    const t = e.target;
+    if (t.id === 'mq') { mq = t.value.trim(); renderMenu(); return; }
+    const box = t.closest('[data-c]');
+    if (!box) return;
+    const cat = findCat(box.dataset.c);
+    if (t.dataset.cat === 'title') { cat.title = t.value; return changed(); }
+    const row = t.closest('.item');
+    if (!row) return;
+    const it = cat.items.find(x => x.id === row.dataset.i);
+    if (t.dataset.f === 'name') { it.name = t.value; t.classList.toggle('bad', !t.value.trim()); }
+    if (t.dataset.f === 'price') { t.value = t.value.replace(/\D/g, ''); it.price = t.value; t.classList.toggle('bad', !(+t.value > 0)); }
+    changed();
+  });
+  $('#p-menu').addEventListener('click', (e) => {
+    const f = e.target.closest('[data-filter]');
+    if (f) { mfilter = f.dataset.filter; haptic(); return renderMenu(); }
+    const b = e.target.closest('[data-act]');
+    if (!b) return;
+    const act = b.dataset.act;
+    if (act === 'newcat') {
+      state.cats.push({ id: nid('c'), title: '🍽 Yangi bo\'lim', items: [] });
+      haptic(); renderMenu(); changed();
+      const boxes = document.querySelectorAll('#p-menu .box'); const last = boxes[boxes.length - 1];
+      last.scrollIntoView({ behavior: 'smooth', block: 'center' }); last.querySelector('[data-cat="title"]').select();
+      return;
+    }
+    const box = b.closest('[data-c]');
+    const cat = findCat(box.dataset.c);
+    if (act === 'add') {
+      const it = { id: nid(cat.daily ? 'd' : 'n'), name: '', price: '', off: false };
+      cat.items.push(it);
+      haptic(); renderMenu(); changed();
+      const el = document.querySelector(`.item[data-i="${it.id}"] .name`);
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' }); el.focus();
+      return;
+    }
+    if (act === 'delcat') {
+      if (cat.items.length && b.dataset.confirm !== '1') { b.dataset.confirm = '1'; b.textContent = `Ichidagi ${cat.items.length} ta taom bilan o'chirilsinmi? Yana bosing`; b.style.color = 'var(--danger)'; return; }
+      state.cats = state.cats.filter(c => c !== cat); haptic(); renderMenu(); changed(); return;
+    }
+    const row = b.closest('.item');
+    const it = cat.items.find(x => x.id === row.dataset.i);
+    if (act === 'photo') {
+      if (!it.name.trim() || !(+it.price > 0)) {
+        haptic('error'); toast('Avval taom nomi va narxini yozing');
+        row.querySelector(!it.name.trim() ? '.name' : '.price').focus();
+        return;
+      }
+      return save(it.id);
+    }
+    if (act === 'toggle') {
+      it.off = !it.off; haptic();
+      row.classList.toggle('off', it.off);
+      b.classList.toggle('is-off', it.off); b.setAttribute('aria-pressed', String(!it.off));
+      b.querySelector('.st').textContent = it.off ? 'Tugadi' : 'Bor';
+      toast(it.off ? `⛔ ${it.name || 'Taom'} — mijozlarga ko'rinmaydi` : `✅ ${it.name || 'Taom'} — yana sotuvda`);
+      if (mfilter === 'off' && !it.off) renderMenu();
+      changed();
+    }
+    if (act === 'del') {
+      if (b.dataset.confirm !== '1') { b.dataset.confirm = '1'; b.textContent = 'Aniqmi? Yana bosing'; b.style.color = 'var(--danger)'; return; }
+      cat.items = cat.items.filter(x => x !== it); haptic(); renderMenu(); changed();
+    }
+  });
+
+  // ================================================================ ⚙️ SOZLAMALAR
+  function renderSet() {
+    $('#p-set').innerHTML = `
+      <div class="box">
+        <h2>Kun taomi chegirmasi</h2>
+        <div class="duo">
+          <div class="field"><label for="s-bm">Nechta dan boshlab</label><input id="s-bm" inputmode="numeric" maxlength="2" value="${esc(state.s.bm)}"></div>
+          <div class="field"><label for="s-bp">Har biri narxi (so'm)</label><input id="s-bp" inputmode="numeric" maxlength="8" value="${esc(state.s.bp)}"></div>
+        </div>
+        <div class="preview" id="s-prev"></div>
+      </div>
+      <div class="box">
+        <h2>Yetkazib berish va ish vaqti</h2>
+        <div class="field"><label for="s-dl">Yetkazib berish matni</label><input id="s-dl" maxlength="60" value="${esc(state.s.dl)}"><span class="help">Mijoz menyuda va savatda shu matnni ko'radi</span></div>
+        <div class="field"><label for="s-h">Ish vaqti</label><input id="s-h" maxlength="40" value="${esc(state.s.h)}"></div>
+      </div>`;
+    prev();
+  }
+  function prev() { $('#s-prev').innerHTML = `Mijoz ko'radi: 🔥 <b>${esc(state.s.bm || '?')} ta</b> va undan ko'p olsangiz — har biri <b>${money(+state.s.bp || 0)}</b>`; }
+  $('#p-set').addEventListener('input', (e) => {
+    const t = e.target, k = { 's-bm': 'bm', 's-bp': 'bp', 's-dl': 'dl', 's-h': 'h' }[t.id];
+    if (!k) return;
+    if (k === 'bm' || k === 'bp') t.value = t.value.replace(/\D/g, '');
+    state.s[k] = t.value; prev(); changed();
+  });
+
+  // ================================================================ tablar
+  let tab = 'stats';
+  function show(t) {
+    tab = t;
+    for (const x of ['stats', 'menu', 'set']) {
+      $('#p-' + x).hidden = x !== t;
+      $('#t-' + (x === 'set' ? 'set' : x)).setAttribute('aria-selected', String(x === t));
+    }
+    if (t === 'stats') renderStats(); if (t === 'menu') renderMenu(); if (t === 'set') renderSet();
+    window.scrollTo(0, 0);
+  }
+  document.querySelector('.tabs').addEventListener('click', (e) => { const b = e.target.closest('[data-tab]'); if (b) { haptic(); show(b.dataset.tab); } });
+
+  // ================================================================ saqlash
+  function countChanges() {
+    if (snapshot() === saved) return 0;
+    const a = JSON.parse(saved), b = JSON.parse(snapshot());
+    const flat = (x) => { const m = new Map(); x[0].forEach(c => c[2].forEach(i => m.set(i[0], JSON.stringify(i)))); return m; };
+    const A = flat(a), B = flat(b);
+    let n = 0;
+    for (const [k, v] of B) if (A.get(k) !== v) n++;
+    for (const k of A.keys()) if (!B.has(k)) n++;
+    if (JSON.stringify(a[1]) !== JSON.stringify(b[1])) n++;
+    a[0].forEach((c, i) => { if (!b[0][i] || b[0][i][1] !== c[1]) n++; });
+    if (b[0].length > a[0].length) n += b[0].length - a[0].length;
+    return Math.max(1, n);
+  }
+  function changed() {
+    const n = countChanges();
+    const text = n ? `Saqlash · ${n} ta o'zgarish` : null;
+    if (inTg) {
+      if (text) tg.MainButton.setParams({ text, is_visible: true, is_active: true }); else tg.MainButton.hide();
+      try { n ? tg.enableClosingConfirmation() : tg.disableClosingConfirmation(); } catch (e) {}
+    } else {
+      $('#fake-main').hidden = !text; document.body.classList.toggle('browser', !!text);
+      if (text) $('#fake-btn').textContent = text;
+    }
+    if (tab === 'stats') renderStats();
+  }
+  function problems() {
+    const bad = [];
+    for (const c of state.cats) {
+      if (!c.daily && !c.title.trim()) bad.push("Bo'lim nomi bo'sh");
+      for (const i of c.items) {
+        if (!i.name.trim()) bad.push(`${c.daily ? 'Kun taomi' : c.title}: nomsiz taom`);
+        else if (!(+i.price > 0)) bad.push(`${i.name}: narx yo'q`);
+      }
+    }
+    if (!(+state.s.bm >= 1)) bad.push('Chegirma soni kamida 1 bo\'lsin');
+    if (!state.cats.some(c => !c.daily)) bad.push("Kamida bitta bo'lim bo'lishi kerak");
+    return bad;
+  }
+  // photoFor: shu taom uchun rasm so'rash (menyu ham birga saqlanadi)
+  function save(photoFor) {
+    if (typeof photoFor !== 'string') photoFor = '';
+    const bad = problems();
+    if (bad.length) {
+      haptic('error');
+      const msg = "Saqlab bo'lmaydi:\n• " + bad.slice(0, 5).join('\n• ');
+      if (inTg) tg.showAlert(msg); else toast(bad[0]);
+      if (tab !== 'set' || bad.every(b => !b.includes('Chegirma'))) show('menu');
+      return;
+    }
+    const pack = (items) => items.map(i => [i.id, i.name.trim(), +i.price, i.off ? 1 : 0]);
+    const today = state.cats.find(c => c.daily);
+    const payload = {
+      type: 'admin', v: 1,
+      t: [state.todayTitle, pack(today.items)],
+      c: state.cats.filter(c => !c.daily).map(c => [c.id, c.title.trim(), pack(c.items)]),
+      s: { bm: +state.s.bm, bp: +state.s.bp || 0, dl: state.s.dl.trim(), h: state.s.h.trim() },
+    };
+    if (photoFor) payload.photo = photoFor;
+    const json = JSON.stringify(payload);
+    if (new TextEncoder().encode(json).length > 4000) {
+      haptic('error');
+      const m = "Menyu juda katta, Telegram bir martada 4 KB dan ko'p yubormaydi. Taomlar nomini qisqartiring yoki bir qismini o'chiring.";
+      return inTg ? tg.showAlert(m) : toast(m);
+    }
+    haptic('success');
+    if (inTg) {
+      try { tg.disableClosingConfirmation(); } catch (e) {}
+      try { tg.sendData(json); } catch (e) { tg.showAlert("Yuborib bo'lmadi. Panelni botdagi pastki «⚙️ Admin panel» tugmasi orqali oching."); }
+      return;
+    }
+    if (photoFor) {
+      const it = state.cats.flatMap(c => c.items).find(x => x.id === photoFor);
+      $('#modal h3').textContent = '📷 Rasm yuborish';
+      $('#modal-pre').textContent = `Telegram'da panel yopiladi va bot yozadi:\n\n"📷 ${it.name} uchun rasm yuboring."\n\nSiz chatga rasm tashlaysiz — bot uni taomga qo'yadi va mijozlar darhol ko'radi.`;
+      $('#modal').hidden = false;
+      return;
+    }
+    $('#modal h3').textContent = 'Saqlashga tayyor ✅';
+    const lines = [`Kun taomi: ${today.items.length} ta`, ...payload.c.map(c => `${c[1]}: ${c[2].length} ta`),
+      `Tugagan: ${offCount()} ta`, `Chegirma: ${payload.s.bm} ta — ${money(payload.s.bp)}`, `Yetkazib berish: ${payload.s.dl}`, `Ish vaqti: ${payload.s.h}`];
+    $('#modal-pre').textContent = lines.join('\n');
+    $('#modal').hidden = false;
+  }
+  $('#fake-btn').onclick = () => save();
+  $('#modal-close').onclick = () => { $('#modal').hidden = true; saved = snapshot(); changed(); };
+  if (inTg) tg.MainButton.onClick(() => save());
+
+  show('stats');
+  changed();
+})();
+</script>
+</body>
+</html>
